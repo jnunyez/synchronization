@@ -2,9 +2,9 @@ apiVersion: sts.silicom.com/v1alpha1
 kind: StsOperatorConfig
 metadata:
   name: sts-operator-config-nosro
-  namespace: silicom
+  namespace: openshift-operators
 spec:
-  namespace: silicom
+  namespace: openshift-operators
   images:
     tsyncd: quay.io/silicom/tsyncd:2.0.1.1
     ts2Phcs: quay.io/silicom/ts2phcs:1.0.0
@@ -13,7 +13,7 @@ spec:
     stsPlugin: quay.io/silicom/sts-plugin:0.0.1
     gpsd: quay.io/silicom/gpsd:3.23.1
   sro:
-    properties:
-      build: false
-  grpcSvcPort: 50051
-  gpsSvcPort: 2947
+    build: false
+    namespace: openshift-operators
+    grpcSvcPort: 50051
+    gpsSvcPort: 2947
