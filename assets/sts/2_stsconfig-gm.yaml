@@ -2,20 +2,27 @@ apiVersion: sts.silicom.com/v1alpha1
 kind: StsConfig
 metadata:
   name: gm-1
-  namespace: silicom
+  namespace: openshift-operators
 spec:
-  namespace: silicom
-  nodeSelector:
+  namespace: openshift-operators
+  nodeSelector: #optional filter over all stsnodes
     sts.silicom.com/config: "gm-1"
   mode: T-GM.8275.1
+  twoStep: 1
+  esmcMode: 1
+  ssmMode: 1
   interfaces:
     - ethName: enp138s0f2
       holdoff: 500
       synce: 1
       mode: Master
+      qlEnable: 1
+      ql: 2
       ethPort: 0
     - ethName: enp138s0f0
       synce: 1
       holdoff: 500
       mode: Master
       ethPort: 1
+      qlEnable: 1
+      ql: 2

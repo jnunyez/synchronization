@@ -2,6 +2,10 @@
 # stsplugin and stsnodes
 
 #roles and clusterroles 
+oc delete role sts-plugin
+oc delete role sts-tsync
+oc delete rolebinding sts-plugin
+oc delete rolebinding sts-tsync
 oc delete clusterroles stsconfigs.sts.silicom.com-v1alpha1-admin
 oc delete clusterroles stsconfigs.sts.silicom.com-v1alpha1-crdview
 oc delete clusterroles stsconfigs.sts.silicom.com-v1alpha1-edit
