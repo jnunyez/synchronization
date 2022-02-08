@@ -1,0 +1,13 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  labels:
+  name: nfd-operator-subs
+  namespace: openshift-operators
+spec:
+  channel: stable
+  installPlanApproval: Manual
+  name: openshift-nfd-operator
+  source: community-operators
+  sourceNamespace: openshift-marketplace
+  startingCSV: nfd.v4.8.0
