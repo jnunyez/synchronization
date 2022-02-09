@@ -4,8 +4,7 @@ metadata:
   name: special-resource-operator-subs
   namespace: openshift-operators
 spec:
-  channel: alpha 
-  installPlanApproval: Automatic
+  channel: alpha
   name: special-resource-operator
   source: community-operators
   sourceNamespace: openshift-marketplace
