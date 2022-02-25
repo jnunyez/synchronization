@@ -6,7 +6,7 @@ metadata:
 spec:
   images:
     #silicom timing sync stack
-    tsyncd: quay.io/silicom/tsyncd:2.0.1.1
+    tsyncd: quay.io/silicom/tsyncd:2.1.0.0
     ts2Phcs: quay.io/silicom/ts2phcs:1.0.0
     phcs2Sys: quay.io/silicom/phcs2sys:3.1.1
     grpcTsyncd: quay.io/silicom/grpc-tsyncd:2.0.1.1
@@ -15,13 +15,16 @@ spec:
   grpcSvcPort: 50051
   gpsSvcPort: 2947
   sro:
-    #disable/enable build of SRO CR (out-of-tree vs in-tree scenarios)
-    #FIXME: If SRO CR is generated and SRO operator not deployed should stop gracefully
+    # disable/enable build of SRO CR (out-of-tree vs in-tree scenarios)
+    # PRE-REQUISITE: is to have NFD subscription and operator installed
+    # PRE-REQUISITE: is to have SRO subscribed and operator installed
+    # FIXME: NFD CR generated but no NFD installed operator should stop
+    # FIXME: If SRO CR is generated and SRO operator not deployed should stop gracefully
     build: true
     #out-of-tree ice driver version
     iceVersion: 1.7.16.1
     #image where ice driver OOT
     #FIXME: To not depend of pre-built image source
     srcImage: quay.io/silicom/ice-driver-src:1.7.16.1
-    #namespace where to locate 
+    #namespace where to locate the sro
     namespace: openshift-operators

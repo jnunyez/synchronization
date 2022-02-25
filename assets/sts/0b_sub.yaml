@@ -5,6 +5,7 @@ metadata:
   namespace: openshift-operators
 spec:
   channel: alpha
+  #installPlanApproval: Manual
   name: silicom-sts-operator
   source: community-operators
   sourceNamespace: openshift-marketplace
