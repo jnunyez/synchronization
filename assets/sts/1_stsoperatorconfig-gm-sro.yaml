@@ -25,6 +25,7 @@ spec:
     iceVersion: 1.7.16.1
     #image where ice driver OOT
     #FIXME: To not depend of pre-built image source
+    #srcImage: quay.io/jnunez/ice-driver-src:test
     srcImage: quay.io/silicom/ice-driver-src:1.7.16.1
     #namespace where to locate the sro
     namespace: openshift-operators
