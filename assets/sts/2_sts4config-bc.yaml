@@ -1,27 +1,27 @@
-piVersion: sts.silicom.com/v1alpha1
+apiVersion: sts.silicom.com/v1alpha1
 kind: StsConfig
 metadata:
   name: bc-1
-  namespace: sts-silicom
+  namespace: openshift-operators
 spec:
-  namespace: sts-silicom
+  namespace: openshift-operators
   imageRegistry: quay.io/silicom
   stsVersion: 2.1.0.0
   nodeSelector:
     sts.silicom.com/config: "bc-1"
-  mode: T-TBC.8275.1
+  mode: T-BC-8275.1
   interfaces:
-    - ethName: enp2s0f0
+    - ethName: enp138s0f2
       synce: 1
       holdoff: 500
       mode: Slave
       ethPort: 0
-    - ethName: enp2s0f1
+    - ethName: enp138s0f0
       synce: 1
       holdoff: 500
       ethPort: 1
       mode: Master
-    - ethName: enp2s0f2
+    - ethName: enp138s0f1
       synce: 1
       holdoff: 500
       ethPort: 2
