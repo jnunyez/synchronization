@@ -6,10 +6,12 @@ metadata:
 spec:
   namespace: openshift-operators
   imageRegistry: quay.io/silicom
-  stsVersion: 2.1.0.0
   nodeSelector:
     sts.silicom.com/config: "bc-1"
   mode: T-BC-8275.1
+  twoStep: 1
+  esmcMode: 1
+  ssmMode: 1
   interfaces:
     - ethName: enp138s0f2
       synce: 1
