@@ -5,11 +5,11 @@ metadata:
   namespace: openshift-operators
 spec:
   images:
-    #silicom timing sync stack
-    tsyncd: quay.io/silicom/tsyncd:2.1.0.0 # 2.1.1.0 not ready yet
-    #ts2Phcs: quay.io/silicom/ts2phcs:1.0.0
+    #artifacts composing silicom timing sync stack 
+    tsyncd: quay.io/silicom/tsyncd:2.1.1.0 # 2.1.1.0 is the recommendation to test BC
+    tsyncExtts: quay.io/silicom/tsync_extts:1.0.0 # equivalent to ts2phcs
     phcs2Sys: quay.io/silicom/phcs2sys:3.1.1
-    grpcTsyncd: quay.io/silicom/grpc-tsyncd:2.1.0.0
+    grpcTsyncd: quay.io/silicom/grpc-tsyncd:2.1.1.0 # recommendation to test BC
     stsPlugin: quay.io/silicom/sts-plugin:0.0.3
     gpsd: quay.io/silicom/gpsd:3.23.1
   grpcSvcPort: 50051
