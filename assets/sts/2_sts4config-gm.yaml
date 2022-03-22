@@ -5,6 +5,7 @@ metadata:
   namespace: openshift-operators
 spec:
   namespace: openshift-operators
+  imageRegistry: quay.io/silicom
   nodeSelector:
     sts.silicom.com/config: "gm-1"
   mode: T-GM.8275.1
@@ -17,13 +18,5 @@ spec:
       synce: 1
       mode: Master
       ethPort: 0
-      qlEnable: 1
-      ql: 2
-      ethPort: 0
-    - ethName: enp81s0f0
-      synce: 1
-      holdoff: 500
-      mode: Master
-      ethPort: 1
       qlEnable: 1
       ql: 2

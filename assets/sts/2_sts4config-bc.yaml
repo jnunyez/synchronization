@@ -18,13 +18,3 @@ spec:
       holdoff: 500
       mode: Slave
       ethPort: 0
-    - ethName: enp138s0f0
-      synce: 1
-      holdoff: 500
-      ethPort: 1
-      mode: Master
-    - ethName: enp138s0f1
-      synce: 1
-      holdoff: 500
-      ethPort: 2
-      mode: Master
