@@ -12,6 +12,8 @@ spec:
   twoStep: 1
   esmcMode: 1
   ssmMode: 1
+  gnssSpec:
+    gnssSigGpsEn: 1
   interfaces:
     - ethName: enp138s0f2
       synce: 1
