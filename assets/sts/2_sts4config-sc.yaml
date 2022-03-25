@@ -1,24 +1,22 @@
 apiVersion: sts.silicom.com/v1alpha1
 kind: StsConfig
 metadata:
-  name: gm-1
+  name: sc-1
   namespace: openshift-operators
 spec:
   namespace: openshift-operators
   imageRegistry: quay.io/silicom
   nodeSelector:
-    sts.silicom.com/config: "gm-1"
-  mode: T-GM.8275.1
+    sts.silicom.com/config: "bc-1"
+  mode: T-TSC.8275.1
   twoStep: 1
   esmcMode: 2
   ssmMode: 1
   gnssSpec:
-    gnssSigGpsEn: 1
+    gnssSigGpsEn: 0
   interfaces:
-    - ethName: enp81s0f2
+    - ethName: enp138s0f2
       holdoff: 500
       synce: 1
-      mode: Master
+      mode: Slave
       ethPort: 0
-      qlEnable: 1
-      ql: 2
