@@ -10,8 +10,11 @@ spec:
     sts.silicom.com/config: "bc-1"
   mode: T-BC-8275.1
   twoStep: 0
-  esmcMode: 1
+  esmcMode: 2
   ssmMode: 1
+  forwardable: 1
+  tracePtpMsg: 0
+  traceLevel: 8
   gnssSpec:
     gnssSigGpsEn: 1
   interfaces:
@@ -20,7 +23,7 @@ spec:
       holdoff: 500
       mode: Slave
       ethPort: 0
-    - ethName: enp138s0f3
+    - ethName: enp138s0f1
       synce: 1
       holdoff: 500
       mode: Master
