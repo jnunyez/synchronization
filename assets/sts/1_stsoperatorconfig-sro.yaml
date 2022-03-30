@@ -5,8 +5,9 @@ metadata:
   namespace: openshift-operators
 spec:
   images:
-    #artifacts composing silicom timing sync stack 
-    tsyncd: quay.io/silicom/tsyncd:2.1.1.0 # 2.1.1.0 is the recommendation to test BC
+    #artifacts composing silicom timing sync stack
+    #tsyncd: quay.io/silicom/tsyncd:2.1.1.0 is the recommendation to test BC
+    tsyncd: quay.io/ryan_raasch/tsyncd:2.1.1.1 # 2.1.1.1 is the recommendation to test BC with more verbose logs
     tsyncExtts: quay.io/silicom/tsync_extts:1.0.0 # equivalent to ts2phcs
     phcs2Sys: quay.io/silicom/phcs2sys:3.1.1
     grpcTsyncd: quay.io/silicom/grpc-tsyncd:2.1.1.0 # recommendation to test BC
@@ -20,11 +21,10 @@ spec:
     # PRE-REQUISITE: is to have SRO subscribed and operator installed
     # FIXME: NFD CR generated but no NFD installed operator should stop
     # FIXME: If SRO CR is generated and SRO operator not deployed should stop gracefully
-    build: true
+    build: false #after loading driver we cant put it to false
     #out-of-tree ice driver version
     iceVersion: 1.7.16.1
     #image where ice driver OOT
-    #FIXME: To not depend of pre-built image source
     #srcImage: quay.io/jnunez/ice-driver-src:test
     srcImage: quay.io/silicom/ice-driver-src:1.7.16.1
     #namespace where to locate the sro
