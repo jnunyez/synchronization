@@ -9,14 +9,19 @@ spec:
   nodeSelector:
     sts.silicom.com/config: "bc-1"
   mode: T-TSC.8275.1
-  twoStep: 1
+  twoStep: 0
   esmcMode: 2
   ssmMode: 1
+  forwardable: 1
+  syncRecClkPort: 3
+  syncOption: 1
   gnssSpec:
-    gnssSigGpsEn: 0
+    gnssSigGpsEn: 1
   interfaces:
     - ethName: enp138s0f2
       holdoff: 500
       synce: 1
       mode: Slave
-      ethPort: 0
+      ethPort: 3
+      qlEnable: 1
+      ql: 4
