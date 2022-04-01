@@ -9,9 +9,12 @@ spec:
   nodeSelector:
     sts.silicom.com/config: "gm-1"
   mode: T-GM.8275.1
-  twoStep: 1
+  twoStep: 0
   esmcMode: 2
   ssmMode: 1
+  forwardable: 1
+  synceRecClkPort: 3
+  syncOption: 1
   gnssSpec:
     gnssSigGpsEn: 1
   interfaces:
@@ -19,6 +22,6 @@ spec:
       holdoff: 500
       synce: 1
       mode: Master
-      ethPort: 0
+      ethPort: 3
       qlEnable: 1
       ql: 2

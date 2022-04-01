@@ -1,4 +1,7 @@
 #!/bin/bash
+#The first argument: sc or bc
+# sc: slave clock setup to test T-SC
+# bc: boundary clock setup to test T-BC
 
 DATE=`date +"%Y_%m_%d_%I_%M_%p"`
 
