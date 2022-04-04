@@ -17,9 +17,10 @@ Red Hat® OpenShift® blah blah blah.
 2. [Telecom Grandmaster Background](#background)
 3. [Installing Silicom Timesync Operator](#installation)
 4. [Telecom Grandmaster Configuration](#stsconfig)
-5. [Uninstalling Silicom Timesync Operator](#uninstalling)
-6. [Wrapup](#conclusion)
-7. [References](#refs)
+6. [Telecom Grandmaster Operation](#stsops)
+7. [Uninstalling Silicom Timesync Operator](#uninstalling)
+8. [Wrapup](#conclusion)
+9. [References](#refs)
 
 The term *Project* and *namespace* maybe used interchangeably in this guide.
 
@@ -73,7 +74,7 @@ Before you begin. Check you have an OpenShift 4.8/4.9 fresh cluster with NFD and
 <!-- Install steps clearly defined on a FRESH CLUSTER with output-->
 
 
-## Telecom Grandmaster Configuration <a name="stsconfig"></a>
+## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
 
 <!-- Show the user how to place the card in T-GM mode -->
 
@@ -106,6 +107,9 @@ spec:
       qlEnable: 1
       ql: 2                 
 ```
+
+
+## Telecom Grandmaster Operation <a name="stsops"></a>
 
 ## Uninstalling Silicom Timesync Operator <a name="uninstalling"></a>
 
