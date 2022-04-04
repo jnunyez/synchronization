@@ -16,7 +16,7 @@ spec:
   syncRecClkPort: 3
   syncOption: 1
   gnssSpec:
-    gnssSigGpsEn: 1
+    gnssSigGpsEn: 0
   interfaces:
     - ethName: enp138s0f2
       holdoff: 500
