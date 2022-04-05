@@ -16,7 +16,7 @@ Red Hat® OpenShift® blah blah blah.
 1. [Pre-requisites](#intro)
 2. [Telecom Grandmaster Background](#background)
 3. [Installing Silicom Timesync Operator](#installation)
-4. [Telecom Grandmaster Configuration](#stsconfig)
+4. [Telecom Grandmaster Provisioning](#stsconfig)
 6. [Telecom Grandmaster Operation](#stsops)
 7. [Uninstalling Silicom Timesync Operator](#uninstalling)
 8. [Wrapup](#conclusion)
@@ -64,10 +64,24 @@ There two Operands to manipulate here based on HW and SW
 #### Time Sync Stack 
 
 Before you begin. Check you have an OpenShift 4.8/4.9 fresh cluster with NFD and SRO operators installed.
+<!-- topology -->
 
 ### Install from the embedded OperatorHub
 
 <!-- Install steps clearly defined on a FRESH CLUSTER with output-->
+
+* Alpha and beta: select alpha.
+
+* The only installation mode supported from the operatorhub is for all namespaces in the cluster: operator will be available in all Namespaces. This means that the namespaces this operator can watch are ALL.
+      - CSV openshift-operators replace
+
+* Pre-requisites: NodeFeature Discovery operator and Special Resource Operator must be installed. In which namespace?
+      - Supported: NFD + SRO MUST be installed in the same namespace as Silicom Operator. The namespace can be selected and by default `openshift-silicom` will be created.
+      - However we need the flexibility to select the namespace where the three operators will be located. Next version: 
+          * NFD, SRO and Silicom can live in their own namespaces
+          * Silicom operand should live in a different namespace than silicom operator.
+
+* The operator gets installed in namespace openshift-silicom or in the namespace specified by the OCP administrator.
 
 ### Install from the CLI
 
@@ -77,8 +91,19 @@ Before you begin. Check you have an OpenShift 4.8/4.9 fresh cluster with NFD and
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
 
 <!-- Show the user how to place the card in T-GM mode -->
+* Supported: Currently, the administrator must manually set labels in the nodes to identify what worker nodes inside the OCP cluster can get the T-TGM.8275.1 role.
+* Not supported: automated discovery of nodes that are directly connected to the GPS signal to add the proper label.
+
+1. Add a node label `gm-1` in the worker node that has GPS cable connected to the (i.e., du3-ldc1).
+
+```console
+oc label node du3-ldc1 sts.silicom.com/config="gm-1" 
+```
+
+2. Create a StsConfig CR object to provision the desired Telecom PTP profile (i.e., T-GM.8275.1)
 
 ```yaml
+cat <<EOF | oc apply -f -
 apiVersion: sts.silicom.com/v1alpha1
 kind: StsConfig
 metadata:
@@ -105,11 +130,38 @@ spec:
       mode: Master
       ethPort: 3
       qlEnable: 1
-      ql: 2                 
+      ql: 2
+EOF                 
 ```
 
+3. Provision the timing stack in the node labelled with `sts.silicom./config: "gm-1"` 
+
+* Unsupported: Creation of timing sync stack in a different namespace than the operator.
+
+```console
+gm-1-du3-ldc1-gpsd-964ch                  2/2     Running   0          49m
+gm-1-du3-ldc1-phc2sys-6fv9k               1/1     Running   0          49m
+gm-1-du3-ldc1-tsync-pkxwv                 2/2     Running   0          44m
+```
+
+* Pods above represent the timing solution for T-GM. Zooming into the pods show picture below with the resulting deployment in node du3-ldc1. 
+
+![Timing Stack](imgs/tgm.png)
+
+
+
+<!--
+mode: Telecom PTP profiles as defined by the ITU-T. T-GM.8275.1 PTP profile corresponds to the profile for the RAN fronthaul network. 
+twoStep and forwardable are PTP parameters.
+gnssSigGpsEn:
+esmcMode, ssmMode, and synceRecClkPort
+syncOption:
+interfaces
+-->
 
 ## Telecom Grandmaster Operation <a name="stsops"></a>
+
+* grpc to show stats etc
 
 ## Uninstalling Silicom Timesync Operator <a name="uninstalling"></a>
 
