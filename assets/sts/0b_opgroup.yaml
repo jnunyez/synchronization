@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: silicom-sts-operator-group
+  namespace: openshift-silicom
+spec:
+  targetNamespaces:
+  - openshift-silicom

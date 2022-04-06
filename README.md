@@ -45,6 +45,7 @@ The term *Project* and *namespace* maybe used interchangeably in this guide.
 
 <!-- Background on T-GM with pictures? -->
 Precise timing is of paramount importance for 5G RAN. 5G RAN leverage of sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between varius elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navidation Satellite Systems (GNSS) such as GPS, and protocols to transport efficiently the timing information to where it is needed. 
+<!-- a high-level picture with long-run goal with the operator -->
 
 <!-- T-GM -->
 Typically, as you can see in the picture above, in a packet-based network PTP is the protocol of choice to carry time information. The recipient of the GNSS information in a PTP network is referred to as the grandmaster (GM) clock. The GM clock is the source of time for the connected network elements lower in the synchronization hierarcy....
@@ -75,7 +76,12 @@ Before you begin. Check you have an OpenShift 4.8/4.9 fresh cluster with NFD and
 * Alpha and beta: select alpha.
 
 * The only installation mode supported from the operatorhub is for all namespaces in the cluster: operator will be available in all Namespaces. This means that the namespaces this operator can watch are ALL.
-      - CSV openshift-operators replace
+
+* Aim: Supported InstallModes come predefine by CSV. We support ownNamespace, singelNamespace, AllNamespace. 
+
+* We select the namespace from the operatorhub console. However, note that to allow the installation in the selected namespace it is required that:
+      - The operator must be a member of an operatorgroup that selects one namespace (ownNamespace or singlenamespace).
+      - Operator is considered to be a member of an operatorgroup if 1) CSV of the operator is installed in the same namespace as the operator group, 2) install mode in CSV support the namespaces targetted by the [operator group][1]     
 
 * Pre-requisites: NodeFeature Discovery operator and Special Resource Operator must be installed. In which namespace?
       - Supported: NFD + SRO MUST be installed in the same namespace as Silicom Operator. The namespace can be selected and by default `openshift-silicom` will be created.
@@ -268,3 +274,5 @@ Show the user helpful output from the pods running on the node, log output from 
 ## Wrap-up <a name="stsconfig"></a>
 
 ## References <a name="refs"></a>
+
+[1]: https://docs.openshift.com/container-platform/4.8/operators/understanding/olm/olm-understanding-operatorgroups.html#olm-operatorgroups-target-namespace_olm-understanding-operatorgroups
