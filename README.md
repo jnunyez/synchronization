@@ -8,8 +8,10 @@ We want to publish a blog that contains a guided example of using the STS Operat
 -   Using T-GM
 -->
 
-Boilerplate text
-Red Hat® OpenShift® blah blah blah.
+<!-- Red Hat® OpenShift® blah blah blah.-->
+
+Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation,
+we will monitor the time synchronization functionalities on T-GM node.
 
 ## Table of Contents
 
@@ -42,24 +44,24 @@ The term *Project* and *namespace* maybe used interchangeably in this guide.
 ## Telecom Grandmaster Background <a name="background"></a>
 
 <!-- Background on T-GM with pictures? -->
-Precise timing is of paramount importance for 5G RAN. 5G RAN leverage of sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between varius elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navidation Satellite Syste (GNSS) such as GPS, and protocols to transport efficiently the timing information to where it is needed. 
+Precise timing is of paramount importance for 5G RAN. 5G RAN leverage of sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between varius elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navidation Satellite Systems (GNSS) such as GPS, and protocols to transport efficiently the timing information to where it is needed. 
 
 <!-- T-GM -->
 Typically, as you can see in the picture above, in a packet-based network PTP is the protocol of choice to carry time information. The recipient of the GNSS information in a PTP network is referred to as the grandmaster (GM) clock. The GM clock is the source of time for the connected network elements lower in the synchronization hierarcy....
 
 <!-- Silicom -->
-We needs cards and timings stack to feed timing sync to other O-RAN network elements.
+We need cards and timings stack to feed timing sync to other O-RAN network elements.
 
 <!-- operator needed-->
 ....In what follows, we present a guide to use the Silicom operator to automate the installation, monitoring, and operation of Silicom cards as well as the time sync stack (i.e., the operands). 
 
 ## Installing Silicom Timesync Operator <a name="installation"></a>
 
-There two Operands to manipulate here based on HW and SW
+There two Operands to manage: one is the Silicom TimeSync cards and the other is the TimeSync sw stack. The operator dramatically simplifies the configuration and management 
 
-#### Silicom Card
+#### Detect Silicom Card
 
-* The operator has been tested with STS2 and STS4 cards.
+* After installing the cards conforming a representative topology 
 
 #### Time Sync Stack 
 
@@ -77,15 +79,41 @@ Before you begin. Check you have an OpenShift 4.8/4.9 fresh cluster with NFD and
 
 * Pre-requisites: NodeFeature Discovery operator and Special Resource Operator must be installed. In which namespace?
       - Supported: NFD + SRO MUST be installed in the same namespace as Silicom Operator. The namespace can be selected and by default `openshift-silicom` will be created.
-      - However we need the flexibility to select the namespace where the three operators will be located. Next version: 
+      - Unsupported: However we need the flexibility to select the namespace where the three operators will be located. Next version: 
           * NFD, SRO and Silicom can live in their own namespaces
           * Silicom operand should live in a different namespace than silicom operator.
 
-* The operator gets installed in namespace openshift-silicom or in the namespace specified by the OCP administrator.
+* The operator gets installed in namespace `openshift-silicom` by default or in the namespace specified by the OCP administrator.
+
+
+2. Provision StsOperatorConfig CR object to provision the desired timing stack configuration
+
+```yaml
+cat <<EOF | oc apply -f -
+apiVersion: sts.silicom.com/v1alpha1
+kind: StsOperatorConfig
+metadata:
+  name: sts-operator-config
+  namespace: openshift-operators
+spec:
+  images:
+    #artifacts composing silicom timing sync stack
+    tsyncd: quay.io/silicom/tsyncd:2.1.1.0
+    tsyncExtts: quay.io/silicom/tsync_extts:1.0.0 
+    phcs2Sys: quay.io/silicom/phcs2sys:3.1.1
+    grpcTsyncd: quay.io/silicom/grpc-tsyncd:2.1.1.0 
+    stsPlugin: quay.io/silicom/sts-plugin:0.0.3
+    gpsd: quay.io/silicom/gpsd:3.23.1
+  grpcSvcPort: 50051
+  gpsSvcPort: 2947
+  sro:
+    build: false
+EOF
+```  
 
 ### Install from the CLI
 
-<!-- Install steps clearly defined on a FRESH CLUSTER with output-->
+<!-- Omit this step Install steps clearly defined on a FRESH CLUSTER with output-->
 
 
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
@@ -161,7 +189,65 @@ interfaces
 
 ## Telecom Grandmaster Operation <a name="stsops"></a>
 
-* grpc to show stats etc
+The timing stack is deployed but, how do we know it is synchronizing the clock in the Silicom network card?
+The time sync stack exposes an API based on gRPC to query timing status information.
+
+1. Let's execute a grpc client in the container exposing the gRPC API.
+
+```console
+oc exec -it gm-1-du3-ldc1-tsync-pkxwv -c du3-ldc1-grpc-tsyncd -- tsynctl_grpc 
+Tsynctl gRPC Client v1.0.9
+$
+```
+
+2. Check the status of the clock in the Silicom network card. Locked status is a good sympthon. We need to know to what primary reference time it has been locked to.
+
+```console
+$ get_clk_class 
+Clock Class: 6, LOCKED
+```
+
+3. Check more privileged timing information status related to the clock, PTP, and SyncE.
+
+```console
+$ register 1 2 3 4 5
+$ get_timing_status 1 2 3 4 5
+
+Timing Status:
+==============
+Clock Mode:   GM Clock
+
+Clock Status:
+=============
+Sync Status:    Locked
+PTP Lock Status:  Locked
+Synce Lock Status:  Locked
+Sync Failure Cause: N/A
+
+PTP Data:
+=========
+Profile:    G_8275_1
+GM Clock ID:    00:E0:ED:FF:FE:F0:28:EC
+Parent Clock ID:  00:E0:ED:FF:FE:F0:28:EC
+Configured Clock Class: 248
+Received Clock Class: 6
+PTP Interface:    according to T-GM series Port Bit Mask value in tsyncd.conf file
+
+SyncE Data:
+===========
+SyncE Interface:  according to T-GM series SyncE Port Bit Mask value in tsyncd.conf file
+Clock Quality:    4
+
+GNSS Data:
+==========
+Number of satellites: 31
+GNSS Fix Type:    5
+GNSS Fix Validity:  true
+GNSS Latitude:    32.943067
+GNSS Longitude:   -96.994507
+GNSS Height:    143.924000
+```
+
 
 ## Uninstalling Silicom Timesync Operator <a name="uninstalling"></a>
 
@@ -171,14 +257,13 @@ Show the user helpful output from the pods running on the node, log output from 
 
 <!-- Uninstall steps clearly defined on a FRESH CLUSTER with output-->
 
-### Uninstall from the CLI
 
+### Uninstall from the CLI
+<!-- Omit this part for the blogpost -->
 * Deleting the subscription and the csv does not delete nfd daemonset or the specialresource daemonsets or the silicom sts-plugin daemonset will not delete the CRs associated to the operator
 
 * If we want to fully delete the set of elements created by the operator we need to delete the stsoperatorconfig CR. The action below will totally delete the stsoperatorconfig daemonset (i.e., the sts-plugin) and the nfd and sro deploment (if used). 
       
-<!-- Install steps clearly defined on a FRESH CLUSTER with output-->
-
 
 ## Wrap-up <a name="stsconfig"></a>
 
