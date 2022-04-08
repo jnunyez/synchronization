@@ -136,6 +136,18 @@ oc label node du3-ldc1 sts.silicom.com/config="gm-1"
 
 2. Create a StsConfig CR object to provision the desired Telecom PTP profile (i.e., T-GM.8275.1)
 
+3. For a full listing of the possible configuration parameters and their possible values.
+
+``` console
+oc explain StsConfig.spec
+```
+
+* Gnss configuration explainations
+
+``` console
+oc explain StsConfig.spec.GnssSpec
+```
+
 ```yaml
 cat <<EOF | oc apply -f -
 apiVersion: sts.silicom.com/v1alpha1
