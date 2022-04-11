@@ -10,11 +10,11 @@ We want to publish a blog that contains a guided example of using the STS Operat
 
 <!-- Red Hat® OpenShift® blah blah blah.-->
 
-Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation, we will monitor the time synchronization functionalities on T-GM node.
+Synchronization is of paramount importance for 5G-NR....Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation, we will monitor the time synchronization functionalities on T-GM node.
 
 ## Table of Contents
 
-1. [Synchronization Background](#background)
+1. [Fundamentals of Synchronization for 5G-NR](#background)
 2. [Pre-requisites](#intro)
 3. [Installing Silicom Timesync Operator](#installation)
 4. [Telecom Grandmaster Provisioning](#stsconfig)
@@ -27,9 +27,9 @@ The term *Project* and *namespace* maybe used interchangeably in this guide.
 
 
 
-## Telecom Grandmaster Background <a name="background"></a>
+## Fundamentals of Synchronization for 5G-NR <a name="background"></a>
 
-Synchronization is of paramount importance for 5G RAN. 5G RAN leverages of sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between various elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navidation Satellite Systems (GNSS) such as GPS (see Figure). With a clear view of the sky, a GPS can get receive signal from satellites. From these signal it can get the sources of Frequency, Phase, and Time.
+5G-NR leverages of sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between various elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navidation Satellite Systems (GNSS) such as GPS (see Figure). With a clear view of the sky, a GPS can get receive signal from satellites. From these signal it can get the sources of Frequency, Phase, and Time.
 
 ![Sync Background](imgs/back.png)
 
