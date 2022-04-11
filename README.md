@@ -10,8 +10,7 @@ We want to publish a blog that contains a guided example of using the STS Operat
 
 <!-- Red Hat® OpenShift® blah blah blah.-->
 
-Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation,
-we will monitor the time synchronization functionalities on T-GM node.
+Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation, we will monitor the time synchronization functionalities on T-GM node.
 
 ## Table of Contents
 
@@ -46,9 +45,15 @@ The term *Project* and *namespace* maybe used interchangeably in this guide.
 <!-- Background on T-GM with pictures? -->
 Precise timing is of paramount importance for 5G RAN. 5G RAN leverage of sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between varius elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navidation Satellite Systems (GNSS) such as GPS, and protocols to transport efficiently the timing information to where it is needed. 
 <!-- a high-level picture with long-run goal with the operator -->
-
+![Sync Background](imgs/back.png)
 <!-- T-GM -->
-Typically, as you can see in the picture above, in a packet-based network PTP is the protocol of choice to carry time information. The recipient of the GNSS information in a PTP network is referred to as the grandmaster (GM) clock. The GM clock is the source of time for the connected network elements lower in the synchronization hierarcy....
+As you can see in the picture above, in a packet-based network PTP is the protocol of choice to carry time information. The synchronization solution consists of the following elements:
+
+- The recipient of the GNSS information in a PTP network is referred to as the grandmaster (GM) clock. The GM clock is conencted to the GNSS receiver and provides the source of time for the connected network elements lower in the synchronization hierarcy. 
+
+- The slave functionality terminates the PTP protocol and tries to estimate the correct time from the master. An O-RRU contain the slave functionality and takes the time information from the slave for its usage.
+
+- The boundary clock consists of both GM and SC functionalities. At the slave side, it receives PTP packet from the GM or another boundary clock, terminates the PTP, and estimates timing from the GM. At master side, a new PTP packet is created based on the timing information of the boundary clock and pass it to the next boundary or slave clock in the chain. 
 
 <!-- Silicom -->
 We need cards and timings stack to feed timing sync to other O-RAN network elements.
@@ -168,7 +173,7 @@ spec:
 EOF                 
 ```
 
-3. Provision the timing stack in the node labelled with `sts.silicom./config: "gm-1"` 
+3. Provision the timing stack in the node labelled as `sts.silicom./config: "gm-1"` 
 
 * Unsupported: Creation of timing sync stack in a different namespace than the operator.
 
@@ -268,7 +273,7 @@ Show the user helpful output from the pods running on the node, log output from 
 <!-- Omit this part for the blogpost -->
 * Deleting the subscription and the csv does not delete nfd daemonset or the specialresource daemonsets or the silicom sts-plugin daemonset will not delete the CRs associated to the operator
 
-* If we want to fully delete the set of elements created by the operator we need to delete the stsoperatorconfig CR. The action below will totally delete the stsoperatorconfig daemonset (i.e., the sts-plugin) and the nfd and sro deploment (if used). 
+* If we want to fully delete the set of elements created by the operator we need to delete the stsoperatorconfig CR. The action below will delete the stsoperatorconfig daemonset (i.e., the sts-plugin) and the nfd and sro deploment (if used). 
       
 
 ## Wrap-up <a name="stsconfig"></a>
