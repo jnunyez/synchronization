@@ -14,8 +14,8 @@ Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShif
 
 ## Table of Contents
 
-1. [Pre-requisites](#intro)
-2. [Telecom Grandmaster Background](#background)
+1. [Synchronization Background](#background)
+2. [Pre-requisites](#intro)
 3. [Installing Silicom Timesync Operator](#installation)
 4. [Telecom Grandmaster Provisioning](#stsconfig)
 6. [Telecom Grandmaster Operation](#stsops)
@@ -25,64 +25,93 @@ Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShif
 
 The term *Project* and *namespace* maybe used interchangeably in this guide.
 
+
+
+## Telecom Grandmaster Background <a name="background"></a>
+
+Synchronization is of paramount importance for 5G RAN. 5G RAN leverages of sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between various elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navidation Satellite Systems (GNSS) such as GPS (see Figure). With a clear view of the sky, a GPS can get receive signal from satellites. From these signal it can get the sources of Frequency, Phase, and Time.
+
+![Sync Background](imgs/back.png)
+
+To transport such info to where it is needed over the network timing sync protocols are used. In a packet-based network Precision Time Protocol (PTP) along with Synchronous Ethernet (SyncE) are the protocols of choice to carry time information. The synchronization solution consists of the following elements:
+
+- The recipient of the GNSS information in a PTP network is referred to as the grandmaster (GM) clock. The T-GM clock is conencted to the GNSS receiver and provides the source of time for the connected network elements lower in the synchronization hierarcy. 
+
+- The slave functionality terminates the PTP protocol and tries to estimate the correct time from the master. An O-RRU contain the slave functionality and takes the time information from the slave for its usage.
+
+- The boundary clock (BC) consists of both T-GM and T-SC functionalities. At the slave side, it receives PTP packet from the GM or another boundary clock, terminates the PTP, and estimates timing from the T-GM. At master side, a new PTP packet is created based on the timing information of the boundary clock and pass it to the next boundary or slave clock in the chain. 
+
+<!-- Silicom -->
+T-BC, T-SC, and T-GM functionalities can be implemented using specific NICs with time synchronization support. [Silicom TimeSync NICs][2] are based on Intel E810 NIC controllers and servo PLL to support both PTP and SyncE for to target O-RAN synchronization requirements in 5G systems. In what follows, we present a step-by-step guide to use the Silicom operator to automate the installation, monitoring, and operation of Silicom Time Sync NICs as well as the TimeSync SW stack (i.e., the operands) in OpenShift.
+
 ## Pre-requisites <a name="pre-requisites"></a>
+
+Before we proceed to the installation ensure you have:
+
 - Terminal environment
   - Your terminal has the following commands
-    - [oc](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc) binary
-    - [git](https://git-scm.com/downloads) binary
+    - [oc](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc) binary.
+    - [git](https://git-scm.com/downloads) binary.
+
 - Physical card itself
-  - STS2, STS4
-  - Connections including GNSS
+  - A GPS antenna with clear sight of the sky connected to the GNSS receiver of the STS4/ST2 card.
+  - STS2 or STS4 cards installed in a worker node.
+
+![Silicom Card](imgs/card.png)
+
 - [Authenticate as Cluster Admin inside your environment](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands) of an OpenShift 4.9 Cluster.
-- Your cluster meets the minimum requirements for the Operator:
-  - 1 worker nodes, with at least:
+
+- OCP cluster with version bigger or equal than 4.8.29 than meets the minimum requirements for the Operator:
+  - 1 worker node, with at least:
     - 8 logical CPU
     - 24 GiB memory
     - 1+ storage devices
 
-## Telecom Grandmaster Background <a name="background"></a>
+- Worker Node OS
+  - RHEL 8 with kernel version bigger or equal than 4.18.0-305.34.2.el8_4.x86_64
 
-<!-- Background on T-GM with pictures? -->
-Precise timing is of paramount importance for 5G RAN. 5G RAN leverage of sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between varius elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navidation Satellite Systems (GNSS) such as GPS, and protocols to transport efficiently the timing information to where it is needed. 
-<!-- a high-level picture with long-run goal with the operator -->
-![Sync Background](imgs/back.png)
-<!-- T-GM -->
-As you can see in the picture above, in a packet-based network PTP is the protocol of choice to carry time information. The synchronization solution consists of the following elements:
-
-- The recipient of the GNSS information in a PTP network is referred to as the grandmaster (GM) clock. The GM clock is conencted to the GNSS receiver and provides the source of time for the connected network elements lower in the synchronization hierarcy. 
-
-- The slave functionality terminates the PTP protocol and tries to estimate the correct time from the master. An O-RRU contain the slave functionality and takes the time information from the slave for its usage.
-
-- The boundary clock consists of both GM and SC functionalities. At the slave side, it receives PTP packet from the GM or another boundary clock, terminates the PTP, and estimates timing from the GM. At master side, a new PTP packet is created based on the timing information of the boundary clock and pass it to the next boundary or slave clock in the chain. 
-
-<!-- Silicom -->
-We need cards and timings stack to feed timing sync to other O-RAN network elements.
-
-<!-- operator needed-->
-....In what follows, we present a guide to use the Silicom operator to automate the installation, monitoring, and operation of Silicom cards as well as the time sync stack (i.e., the operands). 
+- [Node Feature Discovery][3] installed in the same namespace as Silicom TimeSync Operator
 
 ## Installing Silicom Timesync Operator <a name="installation"></a>
 
-There two Operands to manage: one is the Silicom TimeSync cards and the other is the TimeSync sw stack. The operator dramatically simplifies the configuration and management 
+There are two Operands to manage: one is the Silicom TimeSync cards and the other is the TimeSync sw stack. The operator dramatically simplifies the configuration and management of the Silicom TimeSync NICs and the TimeSync software.
 
-#### Detect Silicom Card
+#### Install Silicom Card in Worker
 
-* After installing the cards conforming a representative topology 
+- Install the card in a PCI-Express 4.0 x16 slot 
+
+- Connect GPS Antenna to the RF Input of the STS4 card
+
+- Connect USB cable from uUSB in card to USB port in worker node. Switch-on the worker node to check that the GNSS receiver in the card is detected as a USB device:
+  
+  ```console
+   # dmesg | grep u-blox
+   [13.174498] usb 1-6.1: Product: u-blox GNSS receiver
+   [13.174500] usb 1-6.1: Manufacturer: u-blox AG - www.u-blox.com
+  ``` 
+- Check that the Silicom NIC card has been detected:
+
+  ```console
+  # lspci -s 51:00 -v
+  51:00.0 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
+  Subsystem: Silicom Ltd. Device 02d4
+  ```
 
 #### Time Sync Stack 
 
-Before you begin. Check you have an OpenShift 4.8/4.9 fresh cluster with NFD and SRO operators installed.
-<!-- topology -->
+Now that the card has been installed, we proceed to the installation of the operator that will be in charge of configuring the Synchronization aspects supported by that card.
 
-### Install from the embedded OperatorHub
+### Install Operator from the embedded OperatorHub
 
 <!-- Install steps clearly defined on a FRESH CLUSTER with output-->
 
+1. Install operator
+
 * Alpha and beta: select alpha.
 
-* The only installation mode supported from the operatorhub is for all namespaces in the cluster: operator will be available in all Namespaces. This means that the namespaces this operator can watch are ALL.
+* The only installation mode supported from the operatorhub is `for all namespaces in the cluster`: operator will be available in all Namespaces. This means that the namespaces this operator can watch are ALL.
 
-* Aim: Supported InstallModes come predefine by CSV. We support ownNamespace, singelNamespace, AllNamespace. 
+* Aim: Supported InstallModes come predefined by CSV. We support ownNamespace, singelNamespace, AllNamespace. 
 
 * We select the namespace from the operatorhub console. However, note that to allow the installation in the selected namespace it is required that:
       - The operator must be a member of an operatorgroup that selects one namespace (ownNamespace or singlenamespace).
@@ -122,10 +151,8 @@ spec:
 EOF
 ```  
 
-### Install from the CLI
-
+<!-- ### Install from the CLI -->
 <!-- Omit this step Install steps clearly defined on a FRESH CLUSTER with output-->
-
 
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
 
@@ -281,15 +308,16 @@ Show the user helpful output from the pods running on the node, log output from 
 <!-- Uninstall steps clearly defined on a FRESH CLUSTER with output-->
 
 
-### Uninstall from the CLI
-<!-- Omit this part for the blogpost -->
+<!--### Uninstall from the CLI Omit this part for the blogpost 
 * Deleting the subscription and the csv does not delete nfd daemonset or the specialresource daemonsets or the silicom sts-plugin daemonset will not delete the CRs associated to the operator
 
 * If we want to fully delete the set of elements created by the operator we need to delete the stsoperatorconfig CR. The action below will delete the stsoperatorconfig daemonset (i.e., the sts-plugin) and the nfd and sro deploment (if used). 
-      
+-->      
 
 ## Wrap-up <a name="stsconfig"></a>
 
 ## References <a name="refs"></a>
 
 [1]: https://docs.openshift.com/container-platform/4.8/operators/understanding/olm/olm-understanding-operatorgroups.html#olm-operatorgroups-target-namespace_olm-understanding-operatorgroups
+[2]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/
+[3]: https://docs.openshift.com/container-platform/4.9/hardware_enablement/psap-node-feature-discovery-operator.html
