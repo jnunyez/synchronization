@@ -85,16 +85,17 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
 - Connect USB cable from uUSB in card to USB port in worker node. Switch-on the worker node to check that the GNSS receiver in the card is detected as a USB device:
   
   ```console
-   # dmesg | grep u-blox
-   [13.174498] usb 1-6.1: Product: u-blox GNSS receiver
-   [13.174500] usb 1-6.1: Manufacturer: u-blox AG - www.u-blox.com
+   # lsusb -d 1546:
+   Bus 004 Device 004: ID 1546:01a9 U-Blox AG u-blox GNSS receiver
+   # lsusb -d 1374:
+   Bus 004 Device 003: ID 1374:0001 Silicom Ltd. Tsync USB Device
   ``` 
 - Check that the Silicom NIC card has been detected:
 
   ```console
-  # lspci -s 51:00 -v
-  51:00.0 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
-  Subsystem: Silicom Ltd. Device 02d4
+  # lspci -d 1c2c:
+  84:00.0 Processing accelerators: Silicom Denmark SmartNIC N5010 4x100Gb (rev 01)
+  #
   ```
 
 #### Time Sync Stack 
