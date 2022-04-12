@@ -51,26 +51,21 @@ Before we proceed to the installation ensure you have:
 - Terminal environment
   - Your terminal has the following commands
     - [oc](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc) binary.
-    - [git](https://git-scm.com/downloads) binary.
 
 - Physical card itself
   - A GPS antenna with clear sight of the sky connected to the GNSS receiver of the STS4/ST2 card.
-  - STS2 or STS4 cards installed in a worker node.
 
 ![Silicom Card](imgs/card.png)
 
 - [Authenticate as Cluster Admin inside your environment](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands) of an OpenShift 4.9 Cluster.
 
-- OCP cluster with version bigger or equal than 4.8.29 than meets the minimum requirements for the Operator:
-  - 1 worker node, with at least:
-    - 8 logical CPU
-    - 24 GiB memory
-    - 1+ storage devices
+- OCP cluster with version bigger or equal than 4.8.29 with at least 1 baremetal worker node:
 
-- Worker Node OS
+- Baremetal Worker Node Requirements
   - RHEL 8 with kernel version bigger or equal than 4.18.0-305.34.2.el8_4.x86_64
+  - PCI-Express 4.0 x16 free slot
 
-- [Node Feature Discovery][3] installed in the same namespace as Silicom TimeSync Operator
+- [Node Feature Discovery][3] installed in the same namespace as the Silicom TimeSync Operator
 
 ## Installing Silicom Timesync Operator <a name="installation"></a>
 
@@ -82,7 +77,9 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
 
 - Connect GPS Antenna to the RF Input of the STS4 card
 
-- Connect USB cable from uUSB in card to USB port in worker node. Switch-on the worker node to check that the GNSS receiver in the card is detected as a USB device:
+- Connect USB cable from uUSB in card to USB port in worker node and switch-on the worker node 
+
+- Two USB lines must be detected, the U-Blox GNSS receiver (Vendor IDs 1546) and the Silicom propietary USB (Vendor ID 1373):
   
   ```console
    # lsusb -d 1546:
@@ -90,12 +87,22 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
    # lsusb -d 1374:
    Bus 004 Device 003: ID 1374:0001 Silicom Ltd. Tsync USB Device
   ``` 
-- Check that the Silicom NIC card has been detected:
+- View that the Silicom STS4 twelve ports have been detected:
 
   ```console
-  # lspci -d 1c2c:
-  84:00.0 Processing accelerators: Silicom Denmark SmartNIC N5010 4x100Gb (rev 01)
-  #
+   # lspci -d 8086
+   51:00.0 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
+   51:00.1 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
+   51:00.2 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
+   51:00.3 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
+   51:00.4 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
+   51:00.5 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
+   51:00.6 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
+   51:00.7 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
+   53:00.0 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
+   53:00.1 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
+   53:00.2 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
+   53:00.3 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02) 
   ```
 
 #### Time Sync Stack 
