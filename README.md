@@ -112,10 +112,28 @@ Now that the card has been installed, we proceed to the installation of the oper
 ### Install Operator from the embedded OperatorHub
 
 <!-- Install steps clearly defined on a FRESH CLUSTER with output-->
+This operator requires to install the `Node Feature Discovery Operator` to run in the same namespace.
+We are going to use the namespace we create to install the operator from the OperatorHub and bind an operatorGroup to that object too. You can perform the installation of the operator by using the command line.
 
-1. Install operator
+<!-- 
+      - Supported: NFD + SRO MUST be installed in the same namespace as Silicom Operator. The namespace can be selected and by default `openshift-silicom` will be created.
+      - Unsupported: However we need the flexibility to select the namespace where the three operators will be located. Next version: 
+          * NFD, SRO and Silicom can live in their own namespaces
+          * Silicom operand should live in a different namespace than silicom operator.
+-->
+
+1. Create namespace
+
+![namespace](imgs/namespace.png)
+
+2. Install operator
+
+![operator](imgs/01_install.png)
 
 * Alpha and beta: select alpha.
+
+
+* Pre-requisites: NodeFeature Discovery operator should be preferably installed to automate the labelling of the nodes equipped with a Silicom Time Sync card.
 
 * The only installation mode supported from the operatorhub is `for all namespaces in the cluster`: operator will be available in all Namespaces. This means that the namespaces this operator can watch are ALL.
 
@@ -125,16 +143,12 @@ Now that the card has been installed, we proceed to the installation of the oper
       - The operator must be a member of an operatorgroup that selects one namespace (ownNamespace or singlenamespace).
       - Operator is considered to be a member of an operatorgroup if 1) CSV of the operator is installed in the same namespace as the operator group, 2) install mode in CSV support the namespaces targetted by the [operator group][1]     
 
-* Pre-requisites: NodeFeature Discovery operator and Special Resource Operator must be installed. In which namespace?
-      - Supported: NFD + SRO MUST be installed in the same namespace as Silicom Operator. The namespace can be selected and by default `openshift-silicom` will be created.
-      - Unsupported: However we need the flexibility to select the namespace where the three operators will be located. Next version: 
-          * NFD, SRO and Silicom can live in their own namespaces
-          * Silicom operand should live in a different namespace than silicom operator.
-
 * The operator gets installed in namespace `openshift-silicom` by default or in the namespace specified by the OCP administrator.
 
+![installed](imgs/02_install.png)
 
-2. Provision StsOperatorConfig CR object to provision the desired timing stack configuration
+
+3. Provision StsOperatorConfig CR object to provision the desired timing stack configuration
 
 ```yaml
 cat <<EOF | oc apply -f -
@@ -315,6 +329,7 @@ Show the user helpful output from the pods running on the node, log output from 
 
 <!-- Uninstall steps clearly defined on a FRESH CLUSTER with output-->
 
+![installed](imgs/03_uninstall.png)
 
 <!--### Uninstall from the CLI Omit this part for the blogpost 
 * Deleting the subscription and the csv does not delete nfd daemonset or the specialresource daemonsets or the silicom sts-plugin daemonset will not delete the CRs associated to the operator
