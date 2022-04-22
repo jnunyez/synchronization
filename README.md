@@ -28,7 +28,7 @@ The term *Project* and *namespace* maybe used interchangeably in this guide.
 
 ## Fundamentals of Synchronization for 5G-NR <a name="background"></a>
 
-5G-NR leverages of sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between various elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navidation Satellite Systems (GNSS) such as GPS (see Figure). With a clear view of the sky, a GPS can get receive signal from satellites. From these signal it can get the sources of Frequency, Phase, and Time.
+5G-NR leverages of sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between various elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navidation Satellite Systems (GNSS) such as GPS (see Figure). With a clear view of the sky, a GPS can get receive signal from satellites. From these signals it can get the sources of Frequency, Phase, and Time.
 
 ![Sync Background](imgs/back.png)
 
@@ -41,7 +41,7 @@ To transport such info to where it is needed over the network timing sync protoc
 - The boundary clock (BC) consists of both T-GM and T-SC functionalities. At the slave side, it receives PTP packet from the GM or another boundary clock, terminates the PTP, and estimates timing from the T-GM. At master side, a new PTP packet is created based on the timing information of the boundary clock and pass it to the next boundary or slave clock in the chain. 
 
 
-T-BC, T-SC, and T-GM functionalities can be implemented using specific NICs with time synchronization support. [Silicom TimeSync NICs][2] are based on Intel E810 NIC controllers and servo PLL to support both PTP and SyncE for to target O-RAN synchronization requirements in 5G systems. In what follows, we present a step-by-step guide to use the Silicom operator to automate the installation, monitoring, and operation of Silicom Time Sync NICs as well as the TimeSync SW stack (i.e., the operands) in OpenShift.
+T-BC, T-SC, and T-GM functionalities can be implemented using specific NICs with time synchronization support. [Silicom TimeSync NICs][2] are based on Intel E810 NIC controllers and servo PLL to support both PTP and SyncE to target O-RAN synchronization requirements in 5G systems. In what follows, we present a step-by-step guide to use the Silicom operator to automate the installation, monitoring, and operation of Silicom Time Sync NICs as well as the TimeSync SW stack (i.e., the operands) in OpenShift.
 
 ## Pre-requisites <a name="pre-requisites"></a>
 
@@ -72,7 +72,7 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
 
 #### Install Silicom Card in Worker
 
-- Install the card in a PCI-Express 4.0 x16 slot 
+- Install the card in a PCI-Express 4.0 x16 slot inside a worker node
 
 - Connect GPS Antenna to the RF Input of the STS4 card
 
@@ -126,7 +126,7 @@ Now that the card has been installed, we proceed to the installation of the oper
 
 ![namespace](imgs/namespace.png)
 
-2. Install operator. This operator requires to install the `Node Feature Discovery Operator` to run in the same namespace just created. Once you install the `Node Feature Discovery Operator` in `silicom` namespace we proceed to install silicom Time Sync operator.
+2. Install operator. This operator requires to install the [`Node Feature Discovery Operator`][3] to run in the same namespace just created. Once you install the `Node Feature Discovery Operator` in `silicom` namespace we proceed to install silicom Time Sync operator.
 
 ![operator](imgs/01_install.png)
 
@@ -138,7 +138,6 @@ Now that the card has been installed, we proceed to the installation of the oper
 <!--
 * The only installation mode supported from the operatorhub is `for all namespaces in the cluster`: operator will be available in all Namespaces. This means that the namespaces this operator can watch are ALL.
 The operator gets installed in namespace `openshift-silicom` by default or in the namespace specified by the OCP administrator.-->
-At the end of this step the operator will be installed in namespace called `silicom`.
 
 ![installed](imgs/02_install.png)
 
@@ -177,7 +176,7 @@ EOF
 * Supported: Currently, the administrator must manually set labels in the nodes to identify what worker nodes inside the OCP cluster can get the T-TGM.8275.1 role.
 * Not supported: automated discovery of nodes that are directly connected to the GPS signal to add the proper label.
 
-1. Add a node label `gm-1` in the worker node that has GPS cable connected to the (i.e., du3-ldc1).
+1. Add a node label `gm-1` in the worker node that has GPS cable connected to the (i.e., in our case worker node named `du3-ldc1`).
 
 ```console
 oc label node du3-ldc1 sts.silicom.com/config="gm-1" 
@@ -185,17 +184,6 @@ oc label node du3-ldc1 sts.silicom.com/config="gm-1"
 
 2. Create a StsConfig CR object to provision the desired Telecom PTP profile (i.e., T-GM.8275.1)
 
-3. For a full listing of the possible configuration parameters and their possible values.
-
-``` console
-oc explain StsConfig.spec
-```
-
-* Gnss configuration explainations
-
-``` console
-oc explain StsConfig.spec.GnssSpec
-```
 
 ```yaml
 cat <<EOF | oc apply -f -
@@ -227,6 +215,18 @@ spec:
       qlEnable: 1
       ql: 2
 EOF                 
+```
+
+* For a full listing of the possible configuration parameters and their possible values.
+
+``` console
+oc explain StsConfig.spec
+```
+
+* For a full listing of possible Gnss configuration explanations
+
+``` console
+oc explain StsConfig.spec.GnssSpec
 ```
 
 3. Provision the timing stack in the node labelled as `sts.silicom./config: "gm-1"` 
