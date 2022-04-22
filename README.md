@@ -124,7 +124,7 @@ Now that the card has been installed, we proceed to the installation of the oper
       - Operator is considered to be a member of an operatorgroup if 1) CSV of the operator is installed in the same namespace as the operator group, 2) install mode in CSV support the namespaces targetted by the [operator group][1]
 -->
 
-![namespace](imgs/namespace.png)
+![namespace](imgs/00_namespace.png)
 
 2. Install operator. This operator requires to install the [`Node Feature Discovery Operator`][3] to run in the same namespace just created. Once you install the `Node Feature Discovery Operator` in `silicom` namespace we proceed to install silicom Time Sync operator.
 
