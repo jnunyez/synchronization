@@ -328,8 +328,29 @@ Show the user helpful output from the pods running on the node, log output from 
 ### Uninstall from the embedded OperatorHub
 
 <!-- Uninstall steps clearly defined on a FRESH CLUSTER with output-->
+This step uninstalls the operator the operator. Uninstalling the operator implies uninstalling the controller
 
 ![installed](imgs/03_uninstall.png)
+
+You will see how the time synchronization service is not uninstalled and CRDs we previously created are still present. The CRDs instances  `StsNodes`, `StsOperatorConfig`, and `StsConfig` keep active the created GM role.
+
+```console
+oc get stsnodes du3-ldc1
+.
+.
+gpsStatus:
+  active: 0
+  device: ""
+  lat: ""
+  lon: ""
+  mode: 0
+  time: "2022-04-18T10:43:42.641Z"
+ tsyncStatus:
+  mode: PTP Master Mode
+  status: Normal Status
+```
+
+Note that although the operator is no longer installed the time synchronization service is still detecting a gps device and the node is acting as mater node. This is of special interest since time synchronization is critical in the case 5G deployment.
 
 <!--### Uninstall from the CLI Omit this part for the blogpost 
 * Deleting the subscription and the csv does not delete nfd daemonset or the specialresource daemonsets or the silicom sts-plugin daemonset will not delete the CRs associated to the operator
