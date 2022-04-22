@@ -1,5 +1,6 @@
 # Silicom TimeSync Operator on OpenShift
 <!--
+Red Hat® OpenShift® blah blah blah.
 We want to publish a blog that contains a guided example of using the STS Operator on OpenShift. This should contain:
 
 -   Operator Overview
@@ -7,8 +8,6 @@ We want to publish a blog that contains a guided example of using the STS Operat
 -   Operator Installation
 -   Using T-GM
 -->
-
-<!-- Red Hat® OpenShift® blah blah blah.-->
 
 Synchronization is of paramount importance for 5G-NR....Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation, we will monitor the time synchronization functionalities on T-GM node.
 
@@ -41,7 +40,7 @@ To transport such info to where it is needed over the network timing sync protoc
 
 - The boundary clock (BC) consists of both T-GM and T-SC functionalities. At the slave side, it receives PTP packet from the GM or another boundary clock, terminates the PTP, and estimates timing from the T-GM. At master side, a new PTP packet is created based on the timing information of the boundary clock and pass it to the next boundary or slave clock in the chain. 
 
-<!-- Silicom -->
+
 T-BC, T-SC, and T-GM functionalities can be implemented using specific NICs with time synchronization support. [Silicom TimeSync NICs][2] are based on Intel E810 NIC controllers and servo PLL to support both PTP and SyncE for to target O-RAN synchronization requirements in 5G systems. In what follows, we present a step-by-step guide to use the Silicom operator to automate the installation, monitoring, and operation of Silicom Time Sync NICs as well as the TimeSync SW stack (i.e., the operands) in OpenShift.
 
 ## Pre-requisites <a name="pre-requisites"></a>
@@ -107,43 +106,39 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
 
 #### Time Sync Stack 
 
-Now that the card has been installed, we proceed to the installation of the operator that will be in charge of configuring the Synchronization aspects supported by that card.
+Now that the card has been installed, we proceed to the installation of the operator that will be in charge of configuring the Synchronization aspects supported by that card. Note that you can perform the installation of the operator by using the command line.
 
 ### Install Operator from the embedded OperatorHub
 
 <!-- Install steps clearly defined on a FRESH CLUSTER with output-->
-This operator requires to install the `Node Feature Discovery Operator` to run in the same namespace.
-We are going to use the namespace we create to install the operator from the OperatorHub and bind an operatorGroup to that object too. You can perform the installation of the operator by using the command line.
-
 <!-- 
       - Supported: NFD + SRO MUST be installed in the same namespace as Silicom Operator. The namespace can be selected and by default `openshift-silicom` will be created.
       - Unsupported: However we need the flexibility to select the namespace where the three operators will be located. Next version: 
           * NFD, SRO and Silicom can live in their own namespaces
           * Silicom operand should live in a different namespace than silicom operator.
 -->
-
-1. Create namespace
+1. We are going to use the namespace we create to install the operator from the OperatorHub and bind an operatorGroup to that object too.  We select the namespace from the operatorhub console. However, note that to allow the installation in the selected namespace. NodeFeature Discovery operator should be preferably installed to automate the labelling of the nodes equipped with a Silicom Time Sync card. The current version requires NodeFeature Discovery to coexists in the same namespace as Silicom TimeSync operator.
+* select No additional labels  
+* select `No restrictions' in Default network policy.
+<!--it is required that i) the operator must be a member of an operatorgroup that selects one namespace (ownNamespace or singlenamespace).
+      - Operator is considered to be a member of an operatorgroup if 1) CSV of the operator is installed in the same namespace as the operator group, 2) install mode in CSV support the namespaces targetted by the [operator group][1]
+-->
 
 ![namespace](imgs/namespace.png)
 
-2. Install operator
+2. Install operator. This operator requires to install the `Node Feature Discovery Operator` to run in the same namespace just created. Once you install the `Node Feature Discovery Operator` in `silicom` namespace we proceed to install silicom Time Sync operator.
 
 ![operator](imgs/01_install.png)
 
-* Alpha and beta: select alpha.
+  * select `alpha` Update channel 
+  * select `A specific namespace on the cluster`
+  * select `silicom` namespace as Installed Namespace  
+  * select Update approval Automatic
 
-
-* Pre-requisites: NodeFeature Discovery operator should be preferably installed to automate the labelling of the nodes equipped with a Silicom Time Sync card.
-
+<!--
 * The only installation mode supported from the operatorhub is `for all namespaces in the cluster`: operator will be available in all Namespaces. This means that the namespaces this operator can watch are ALL.
-
-* Aim: Supported InstallModes come predefined by CSV. We support ownNamespace, singelNamespace, AllNamespace. 
-
-* We select the namespace from the operatorhub console. However, note that to allow the installation in the selected namespace it is required that:
-      - The operator must be a member of an operatorgroup that selects one namespace (ownNamespace or singlenamespace).
-      - Operator is considered to be a member of an operatorgroup if 1) CSV of the operator is installed in the same namespace as the operator group, 2) install mode in CSV support the namespaces targetted by the [operator group][1]     
-
-* The operator gets installed in namespace `openshift-silicom` by default or in the namespace specified by the OCP administrator.
+The operator gets installed in namespace `openshift-silicom` by default or in the namespace specified by the OCP administrator.-->
+At the end of this step the operator will be installed in namespace called `silicom`.
 
 ![installed](imgs/02_install.png)
 
@@ -248,8 +243,6 @@ gm-1-du3-ldc1-tsync-pkxwv                 2/2     Running   0          44m
 
 ![Timing Stack](imgs/tgm.png)
 
-
-
 <!--
 mode: Telecom PTP profiles as defined by the ITU-T. T-GM.8275.1 PTP profile corresponds to the profile for the RAN fronthaul network. 
 twoStep and forwardable are PTP parameters.
@@ -332,19 +325,15 @@ This step uninstalls the operator the operator. Uninstalling the operator implie
 
 ![installed](imgs/03_uninstall.png)
 
-You will see how the time synchronization service is not uninstalled and CRDs we previously created are still present. The CRDs instances  `StsNodes`, `StsOperatorConfig`, and `StsConfig` keep active the created GM role.
+You will see how the time synchronization service is still active because CRs we previously proviviosned are still present. The CRDs instances  `StsNodes`, `StsOperatorConfig`, and `StsConfig` keep active the created GM role.
 
 ```console
-oc get stsnodes du3-ldc1
+$ oc get stsnodes du3-ldc1
 .
 .
 gpsStatus:
-  active: 0
-  device: ""
-  lat: ""
-  lon: ""
-  mode: 0
-  time: "2022-04-18T10:43:42.641Z"
+.
+.
  tsyncStatus:
   mode: PTP Master Mode
   status: Normal Status
