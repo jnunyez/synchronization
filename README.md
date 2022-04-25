@@ -59,11 +59,11 @@ Before we proceed to the installation ensure you have:
 
 - Physical Silicom Time Sync card itself
 
-![Silicom Card](imgs/card.png)
+![Silicom Card](imgs/00_card.png)
 
 <figcaption> 
 
-**Figure 2** Silicom Card 
+**Figure 2** Silicom Time Sync Card 
 
 </figcaption>
 
@@ -89,7 +89,16 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
 
 - Install the card in a PCI-Express 4.0 x16 slot inside a worker node
 
-- Connect GPS Antenna to the RF Input of the STS4 card
+- Connect GPS Antenna to the GPS Input of the STS4 card
+
+![Silicom Card](imgs/01_card.png)
+
+<figcaption> 
+
+**Figure 3** GPS Input Silicom Time Sync Card 
+
+</figcaption>
+
 
 - Connect USB cable from uUSB in card to USB port in worker node and switch-on the worker node 
 
@@ -108,6 +117,7 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
    # lsusb -d 1374:
    Bus 004 Device 003: ID 1374:0001 Silicom Ltd. Tsync USB Device
   ``` 
+ 
 - View that the Silicom STS4 based on Intel E810 has been detected:
 
   ```console
@@ -124,6 +134,15 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
    53:00.1 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
    53:00.2 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
    53:00.3 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02) 
+  ```
+
+- The firmware in the card must be greater than 3.2 Check firmware of the card by getting the interface name: 
+
+  ```console
+  # ls  /sys/bus/pci/devices/0000\:51\:00.2/net
+  enp81s0f2
+  #ethtool -i enp81s0f2 | grep firmware
+  firmware-version: 3.10 0x8000d86d 1.3106.0
   ```
 
 #### Time Sync Stack 
@@ -176,9 +195,9 @@ The operator gets installed in namespace `openshift-silicom` by default or in th
 
 </figcaption>
 
-Once the operator is installed with the CRDs exposed in the figure above, we proceed to instantiate the CRs needs still to be instantiated.
+Once the operator is installed with the CRDs exposed in the figure above, we proceed to instantiate the CRs needs still to be instantiated. When you install an operator you are not installing the services managed by that operator. 
 
-3. Provision StsOperatorConfig CR object to provision the desired timing stack configuration
+3. Provision StsOperatorConfig CR object to set the desired timing stack configuration. The CRD StsOperator
 
 ```yaml
 cat <<EOF | oc apply -f -
@@ -186,15 +205,14 @@ apiVersion: sts.silicom.com/v1alpha1
 kind: StsOperatorConfig
 metadata:
   name: sts-operator-config
-  namespace: openshift-operators
+  namespace: silicom
 spec:
   images:
-    #artifacts composing silicom timing sync stack
-    tsyncd: quay.io/silicom/tsyncd:2.1.1.0
+    tsyncd: quay.io/silicom/tsyncd:2.1.1.1
     tsyncExtts: quay.io/silicom/tsync_extts:1.0.0 
     phcs2Sys: quay.io/silicom/phcs2sys:3.1.1
-    grpcTsyncd: quay.io/silicom/grpc-tsyncd:2.1.1.0 
-    stsPlugin: quay.io/silicom/sts-plugin:0.0.3
+    grpcTsyncd: quay.io/silicom/grpc-tsyncd:2.1.1.1 
+    stsPlugin: quay.io/silicom/sts-plugin:0.0.5
     gpsd: quay.io/silicom/gpsd:3.23.1
   grpcSvcPort: 50051
   gpsSvcPort: 2947
@@ -203,10 +221,8 @@ spec:
 EOF
 ```  
 
-<!-- ### Install from the CLI -->
-<!-- Omit this step Install steps clearly defined on a FRESH CLUSTER with output-->
-
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
+
 
 <!-- Show the user how to place the card in T-GM mode -->
 * Supported: Currently, the administrator must manually set labels in the nodes to identify what worker nodes inside the OCP cluster can get the T-TGM.8275.1 role.
