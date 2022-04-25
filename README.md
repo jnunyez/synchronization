@@ -9,7 +9,7 @@ We want to publish a blog that contains a guided example of using the STS Operat
 -   Using T-GM
 -->
 
-Synchronization is of paramount importance for 5G O-RAN (Open Radio Access Networks)....Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation, we will monitor the time synchronization functionalities on Telecom Grand Master (T-GM) node.
+Synchronization is of paramount importance for 5G O-RAN (Open Radio Access Networks). Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation, we will monitor the time synchronization functionalities on Telecom Grand Master (T-GM) node.
 
 ## Table of Contents
 
@@ -57,9 +57,9 @@ Before we proceed to the installation ensure you have:
   - Your terminal has the following commands
     - [oc](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc) binary.
 
-- Physical Silicom Time Sync card itself
+- Physical Silicom Time Sync card 
 
-![Silicom Card](imgs/00_card.png)
+![Silicom Card](imgs/01_card.png)
 
 <figcaption> 
 
@@ -69,7 +69,7 @@ Before we proceed to the installation ensure you have:
 
 - A GPS antenna with clear sight of the sky connected to the GNSS receiver of the STS4/ST2 card.
 
-- [Authenticate as Cluster Admin inside your environment](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands) of an OpenShift 4.9 Cluster.
+- [Authenticate as Cluster Admin inside your environment](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands) in an OCP Cluster.
 
 - OCP cluster with version bigger or equal than 4.8.36 with at least 1 baremetal worker node with access to `quay.io`
 
@@ -91,7 +91,7 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
 
 - Connect GPS Antenna to the GPS Input of the STS4 card
 
-![Silicom Card](imgs/01_card.png)
+![Silicom Card](imgs/00_card.png)
 
 <figcaption> 
 
@@ -136,7 +136,7 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
    53:00.3 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02) 
   ```
 
-- The firmware in the card must be greater than 3.2 Check firmware of the card by getting the interface name: 
+- The firmware in the card must be greater than 3.2. Check firmware of the card by getting the interface name: 
 
   ```console
   # ls  /sys/bus/pci/devices/0000\:51\:00.2/net
@@ -283,7 +283,7 @@ oc explain StsConfig.spec.GnssSpec
 
 3. Provision the timing stack in the node labelled as `sts.silicom./config: "gm-1"` 
 
-* Unsupported: Creation of timing sync stack in a different namespace than the operator.
+<!--* Unsupported: Creation of timing sync stack in a different namespace than the operator.-->
 
 ```console
 gm-1-du3-ldc1-gpsd-964ch                  2/2     Running   0          49m
@@ -291,7 +291,7 @@ gm-1-du3-ldc1-phc2sys-6fv9k               1/1     Running   0          49m
 gm-1-du3-ldc1-tsync-pkxwv                 2/2     Running   0          44m
 ```
 
-* Pods above represent the timing solution for T-GM. Zooming into the pods show picture below with the resulting deployment in node du3-ldc1. 
+* Pods above represent the timing solution for T-GM of a node labelled `gm-1`. The picture describes the resulting deployment in node du3-ldc1. 
 
 ![Timing Stack](imgs/tgm.png)
 
@@ -373,14 +373,10 @@ GNSS Height:    143.924000
 ```
 
 
-## Uninstalling Silicom Timesync Operator <a name="uninstalling"></a>
-
-Show the user helpful output from the pods running on the node, log output from successful assocation with GPS coordinates, etc
-
-### Uninstall from the embedded OperatorHub
+## Uninstalling Silicom Timesync Operator from the embedded OperatorHub <a name="uninstalling"></a>
 
 <!-- Uninstall steps clearly defined on a FRESH CLUSTER with output-->
-This step uninstalls the operator the operator. Uninstalling the operator implies uninstalling the controller
+Now we proceed to uninstall the operator. Uninstalling the operator can be done from the OperatorHub console.
 
 ![installed](imgs/03_uninstall.png)
 
@@ -390,9 +386,7 @@ This step uninstalls the operator the operator. Uninstalling the operator implie
 
 </figcaption>
 
-
-
-You will see how the time synchronization service is still active because CRs we previously proviviosned are still present. The CRDs instances  `StsNodes`, `StsOperatorConfig`, and `StsConfig` keep active the created GM role.
+You will see how the time synchronization service is still active because CRs we previously proviviosned and the physical card are still present. The CRDs instances  `StsNodes`, `StsOperatorConfig`, and `StsConfig` keep active the created GM role.
 
 ```console
 $ oc get stsnodes du3-ldc1
@@ -406,7 +400,22 @@ gpsStatus:
   status: Normal Status
 ```
 
-Note that although the operator is no longer installed the time synchronization service is still detecting a gps device and the node is acting as mater node. This is of special interest since time synchronization is critical in the case 5G deployment.
+Note that although the operator is no longer installed the time synchronization service is still detecting a gps device and the node is acting as mater node. This is of special interest since time synchronization is critical in the case 5G deployment. Let's proceed to fully delete the Silicom time synchronization software service:
+
+* Delete the pods associated to the Time Sync service:
+```console
+oc delete stsconfig gm-1
+```
+* Delete the CR that maintains stsplugin Daemonset:
+
+```console
+oc delete stsoperatorconfig sts-operator-config
+```
+* Delete the CR that maintains the nodes with a Silicom Time Sync card.
+
+```console
+oc delete stsnode du3-ldc1
+```
 
 <!--### Uninstall from the CLI Omit this part for the blogpost 
 * Deleting the subscription and the csv does not delete nfd daemonset or the specialresource daemonsets or the silicom sts-plugin daemonset will not delete the CRs associated to the operator
@@ -414,10 +423,10 @@ Note that although the operator is no longer installed the time synchronization 
 * If we want to fully delete the set of elements created by the operator we need to delete the stsoperatorconfig CR. The action below will delete the stsoperatorconfig daemonset (i.e., the sts-plugin) and the nfd and sro deploment (if used). 
 -->      
 
-## Wrap-up <a name="stsconfig"></a>
+<!--## Wrap-up <a name="stsconfig"></a>
 
 ## References <a name="refs"></a>
-
+-->
 [1]: https://docs.openshift.com/container-platform/4.8/operators/understanding/olm/olm-understanding-operatorgroups.html#olm-operatorgroups-target-namespace_olm-understanding-operatorgroups
 [2]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/
 [3]: https://docs.openshift.com/container-platform/4.9/hardware_enablement/psap-node-feature-discovery-operator.html
