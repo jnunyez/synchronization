@@ -71,7 +71,7 @@ Before we proceed to the installation ensure you have:
 
 - [Authenticate as Cluster Admin inside your environment](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands) of an OpenShift 4.9 Cluster.
 
-- OCP cluster with version bigger or equal than 4.8.36 with at least 1 baremetal worker node:
+- OCP cluster with version bigger or equal than 4.8.36 with at least 1 baremetal worker node with access to `quay.io`
 
 - Baremetal Worker Node Requirements
   - RHEL 8 with kernel version bigger or equal than 4.18.0-305.34.2.el8_4.x86_64
@@ -159,10 +159,10 @@ Now that the card has been installed, we proceed to the installation of the oper
 
 ![operator](imgs/01_install.png)
 
-  * select `alpha` Update channel 
-  * select `A specific namespace on the cluster`
-  * select `silicom` namespace as Installed Namespace  
-  * select Update approval Automatic
+  * select *alpha* as **Update channel** 
+  * select *A specific namespace on the cluster* as **Installation mode**
+  * select *silicom* namespace as **Installed Namespace**  
+  * select *Automatic* as **Update approval**
 
 <!--
 * The only installation mode supported from the operatorhub is `for all namespaces in the cluster`: operator will be available in all Namespaces. This means that the namespaces this operator can watch are ALL.
@@ -176,6 +176,7 @@ The operator gets installed in namespace `openshift-silicom` by default or in th
 
 </figcaption>
 
+Once the operator is installed with the CRDs exposed in the figure above, we proceed to instantiate the CRs needs still to be instantiated.
 
 3. Provision StsOperatorConfig CR object to provision the desired timing stack configuration
 
