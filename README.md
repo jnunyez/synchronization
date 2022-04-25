@@ -9,11 +9,11 @@ We want to publish a blog that contains a guided example of using the STS Operat
 -   Using T-GM
 -->
 
-Synchronization is of paramount importance for 5G-NR....Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation, we will monitor the time synchronization functionalities on T-GM node.
+Synchronization is of paramount importance for 5G O-RAN (Open Radio Access Networks)....Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation, we will monitor the time synchronization functionalities on Telecom Grand Master (T-GM) node.
 
 ## Table of Contents
 
-1. [Fundamentals of Synchronization for 5G-NR](#background)
+1. [Fundamentals of Synchronization for 5G O-RAN](#background)
 2. [Pre-requisites](#intro)
 3. [Installing Silicom Timesync Operator](#installation)
 4. [Telecom Grandmaster Provisioning](#stsconfig)
@@ -26,22 +26,28 @@ The term *Project* and *namespace* maybe used interchangeably in this guide.
 
 
 
-## Fundamentals of Synchronization for 5G-NR <a name="background"></a>
+## Fundamentals of Synchronization for 5G O-RAN <a name="background"></a>
 
-5G-NR leverages of sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between various elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navidation Satellite Systems (GNSS) such as GPS (see Figure). With a clear view of the sky, a GPS can get receive signal from satellites. From these signals it can get the sources of Frequency, Phase, and Time.
+5G O-RAN leverages sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between various dissagregated elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navidation Satellite Systems (GNSS) such as Global Positioning Systems (GPS). With a clear view of the sky, a GPS can receive signal from satellites. From these signals it can get the sources of Frequency, Phase, and Time.
 
 ![Sync Background](imgs/back.png)
 
-To transport such info to where it is needed over the network timing sync protocols are used. In a packet-based network Precision Time Protocol (PTP) along with Synchronous Ethernet (SyncE) are the protocols of choice to carry time information. The synchronization solution consists of the following elements:
+<figcaption class="figure-caption text-center"> 
 
-- The recipient of the GNSS information in a PTP network is referred to as the grandmaster (GM) clock. The T-GM clock is conencted to the GNSS receiver and provides the source of time for the connected network elements lower in the synchronization hierarcy. 
+**Figure 1** PTP clocks with Master and Slave Ports 
 
-- The slave functionality terminates the PTP protocol and tries to estimate the correct time from the master. An O-RRU contain the slave functionality and takes the time information from the slave for its usage.
+</figcaption>
 
-- The boundary clock (BC) consists of both T-GM and T-SC functionalities. At the slave side, it receives PTP packet from the GM or another boundary clock, terminates the PTP, and estimates timing from the T-GM. At master side, a new PTP packet is created based on the timing information of the boundary clock and pass it to the next boundary or slave clock in the chain. 
+In 5G O-RAN, multiple distributed network elements require getting Frequency, Time and Phase info. In a packet-based network Precision Time Protocol (PTP) along with Synchronous Ethernet (SyncE) are prominently the dedicated protocols to carry timing information. The synchronization solution consists of the following elements:
+
+- The recipient of the GNSS information in a PTP network is referred to as the Telecom Grand Master (T-GM). The T-GM consumes the frequency, phase, and timing info from a Primary Reference Time Clock (PRTC) to calibrate its clock and distribute the frequency, phase, and time signal to its connected network elements lower in the synchronization hierarchy.
+
+- The Telecom Time Slave Clock (T-TSC) functionality terminates the PTP protocol and tries to estimate the correct time from the T-GM. An O-RRU contain the slave functionality and takes the time information from the slave for its usage.
+
+- The Telecom Boundary Clock (T-BC) includes both T-GM and T-TSC functionalities. At the slave side, it receives PTP packet from the GM or another boundary clock, terminates the PTP, and estimates timing from the T-GM. At master side, a new PTP packet is created based on the timing information of the boundary clock and pass it to the next boundary or slave clock in the chain. 
 
 
-T-BC, T-SC, and T-GM functionalities can be implemented using specific NICs with time synchronization support. [Silicom TimeSync NICs][2] are based on Intel E810 NIC controllers and servo PLL to support both PTP and SyncE to target O-RAN synchronization requirements in 5G systems. In what follows, we present a step-by-step guide to use the Silicom operator to automate the installation, monitoring, and operation of Silicom Time Sync NICs as well as the TimeSync SW stack (i.e., the operands) in OpenShift.
+T-BC, T-TSC, and T-GM functionalities can be implemented using specific NICs with time synchronization support. [Silicom TimeSync NICs][2] are based on Intel E810 NIC controllers and phase-locked loop (PLL)-based clocks to support both PTP and SyncE to target O-RAN synchronization requirements in 5G systems. In what follows, we present a step-by-step guide to use the Silicom operator to automate the installation, monitoring, and operation of Silicom Time Sync NICs as well as the TimeSync SW stack (i.e., the operands) in OpenShift.
 
 ## Pre-requisites <a name="pre-requisites"></a>
 
@@ -51,14 +57,21 @@ Before we proceed to the installation ensure you have:
   - Your terminal has the following commands
     - [oc](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc) binary.
 
-- Physical card itself
-  - A GPS antenna with clear sight of the sky connected to the GNSS receiver of the STS4/ST2 card.
+- Physical Silicom Time Sync card itself
 
 ![Silicom Card](imgs/card.png)
 
+<figcaption> 
+
+**Figure 2** Silicom Card 
+
+</figcaption>
+
+- A GPS antenna with clear sight of the sky connected to the GNSS receiver of the STS4/ST2 card.
+
 - [Authenticate as Cluster Admin inside your environment](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands) of an OpenShift 4.9 Cluster.
 
-- OCP cluster with version bigger or equal than 4.8.29 with at least 1 baremetal worker node:
+- OCP cluster with version bigger or equal than 4.8.36 with at least 1 baremetal worker node:
 
 - Baremetal Worker Node Requirements
   - RHEL 8 with kernel version bigger or equal than 4.18.0-305.34.2.el8_4.x86_64
@@ -126,6 +139,13 @@ Now that the card has been installed, we proceed to the installation of the oper
 
 ![namespace](imgs/00_namespace.png)
 
+<figcaption> 
+
+**Figure 3** Select Namespace 
+
+</figcaption>
+
+
 2. Install operator. This operator requires to install the [`Node Feature Discovery Operator`][3] to run in the same namespace just created. Once you install the `Node Feature Discovery Operator` in `silicom` namespace we proceed to install silicom Time Sync operator.
 
 ![operator](imgs/01_install.png)
@@ -140,6 +160,12 @@ Now that the card has been installed, we proceed to the installation of the oper
 The operator gets installed in namespace `openshift-silicom` by default or in the namespace specified by the OCP administrator.-->
 
 ![installed](imgs/02_install.png)
+
+<figcaption> 
+
+**Figure 4** Install Operator 
+
+</figcaption>
 
 
 3. Provision StsOperatorConfig CR object to provision the desired timing stack configuration
@@ -243,6 +269,13 @@ gm-1-du3-ldc1-tsync-pkxwv                 2/2     Running   0          44m
 
 ![Timing Stack](imgs/tgm.png)
 
+<figcaption> 
+
+**Figure 5** Deployment of a T-GM 
+
+</figcaption>
+
+
 <!--
 mode: Telecom PTP profiles as defined by the ITU-T. T-GM.8275.1 PTP profile corresponds to the profile for the RAN fronthaul network. 
 twoStep and forwardable are PTP parameters.
@@ -324,6 +357,14 @@ Show the user helpful output from the pods running on the node, log output from 
 This step uninstalls the operator the operator. Uninstalling the operator implies uninstalling the controller
 
 ![installed](imgs/03_uninstall.png)
+
+<figcaption> 
+
+**Figure 6** Uninstall operator 
+
+</figcaption>
+
+
 
 You will see how the time synchronization service is still active because CRs we previously proviviosned are still present. The CRDs instances  `StsNodes`, `StsOperatorConfig`, and `StsConfig` keep active the created GM role.
 
