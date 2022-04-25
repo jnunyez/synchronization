@@ -1,0 +1,24 @@
+apiVersion: sts.silicom.com/v1alpha1
+kind: StsOperatorConfig
+metadata:
+  name: sts-operator-config
+  namespace: openshift-operators
+spec:
+  images:
+    #artifacts composing silicom timing sync stack
+    tsyncd: quay.io/silicom/tsyncd:2.1.1.1
+    #tsyncd: quay.io/ryan_raasch/tsyncd:2.1.1.1 # 2.1.1.1 is the recommendation to test BC with more verbose logs
+    tsyncExtts: quay.io/silicom/tsync_extts:1.0.0 # equivalent to ts2phcs
+    phcs2Sys: quay.io/silicom/phcs2sys:3.1.1
+    grpcTsyncd: quay.io/silicom/grpc-tsyncd:2.1.1.1 # recommendation to test BC
+    stsPlugin: quay.io/silicom/sts-plugin:0.0.5
+    gpsd: quay.io/silicom/gpsd:3.23.1
+  grpcSvcPort: 50051
+  gpsSvcPort: 2947
+  sro:
+    # disable/enable build of SRO CR (out-of-tree vs in-tree scenarios)
+    # PRE-REQUISITE: is to have NFD subscription and operator installed
+    # PRE-REQUISITE: is to have SRO subscribed and operator installed
+    # FIXME: NFD CR generated but no NFD installed operator should stop
+    # FIXME: If SRO CR is generated and SRO operator not deployed should stop gracefully
+    build: false #after loading driver we cant put it to false
