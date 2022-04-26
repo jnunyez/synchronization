@@ -106,7 +106,7 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
   
   ```console
   oc debug node/du3-ldc1 --image=quay.io/fedora/fedora:36-x86_64
-  sh-5.1# dnf -y install usbutils pciutils
+  sh-5.1# dnf -y install ethtool usbutils pciutils
   ```
 
 - Two USB lines must be detected, the U-Blox GNSS receiver (Vendor IDs 1546) and the Silicom propietary USB (Vendor ID 1373):
@@ -141,10 +141,21 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
   ```console
   # ls  /sys/bus/pci/devices/0000\:51\:00.2/net
   enp81s0f2
-  #ethtool -i enp81s0f2 | grep firmware
+  # ethtool -i enp81s0f2 | grep firmware
   firmware-version: 3.10 0x8000d86d 1.3106.0
   ```
+- Assure that the GPS input is getting GPS data (9600baud rate, :
 
+  ```console
+  # stty -F /dev/ttyACM0 raw
+  # cat /dev/ttyACM0
+  $GNVTG,,T,,M,0.000,N,0.000,K,A*3D
+  $GNGGA,142033.00,3256.58402,N,09659.67042,W,1,12,99.99,169.1,M,-25.1,M,,*4D
+  $GNGSA,A,3,09,16,27,04,07,14,21,01,51,30,08,46,99.99,99.99,99.99,1*33
+  $GNGSA,A,3,83,72,73,85,74,84,65,71,,,,,99.99,99.99,99.99,2*3F
+  $GNGSA,A,3,02,11,05,09,24,12,25,33,03,31,,,99.99,99.99,99.99,3*3E
+  $GNGSA,A,3,,,,,,,,,,,,,99.99,99.99,99.99,4*34
+  ```
 #### Time Sync Stack 
 
 Now that the card has been installed, we proceed to the installation of the operator that will be in charge of configuring the Synchronization aspects supported by that card. Note that you can perform the installation of the operator by using the command line.
@@ -224,9 +235,9 @@ EOF
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
 
 
-<!-- Show the user how to place the card in T-GM mode -->
-* Supported: Currently, the administrator must manually set labels in the nodes to identify what worker nodes inside the OCP cluster can get the T-TGM.8275.1 role.
+<!-- Show the user how to place the card in T-GM mode Supported: Currently, the administrator must manually set labels in the nodes to identify what worker nodes inside the OCP cluster can get the T-TGM.8275.1 role.
 * Not supported: automated discovery of nodes that are directly connected to the GPS signal to add the proper label.
+-->
 
 1. Add a node label `gm-1` in the worker node that has GPS cable connected to the (i.e., in our case worker node named `du3-ldc1`).
 
@@ -234,7 +245,7 @@ EOF
 oc label node du3-ldc1 sts.silicom.com/config="gm-1" 
 ```
 
-2. Create a StsConfig CR object to provision the desired Telecom PTP profile (i.e., T-GM.8275.1)
+2. Create a StsConfig CR object to provision the desired Telecom PTP profile (i.e., T-GM.8275.1).
 
 
 ```yaml
@@ -281,17 +292,15 @@ oc explain StsConfig.spec
 oc explain StsConfig.spec.GnssSpec
 ```
 
-3. Provision the timing stack in the node labelled as `sts.silicom./config: "gm-1"` 
-
-<!--* Unsupported: Creation of timing sync stack in a different namespace than the operator.-->
+* Ultimately you should see from terminal three new pods:
 
 ```console
-gm-1-du3-ldc1-gpsd-964ch                  2/2     Running   0          49m
-gm-1-du3-ldc1-phc2sys-6fv9k               1/1     Running   0          49m
-gm-1-du3-ldc1-tsync-pkxwv                 2/2     Running   0          44m
+gm-1-du3-ldc1-gpsd-964ch                  2/2     Running   0
+gm-1-du3-ldc1-phc2sys-6fv9k               1/1     Running   0          
+gm-1-du3-ldc1-tsync-pkxwv                 2/2     Running   0          
 ```
 
-* Pods above represent the timing solution for T-GM of a node labelled `gm-1`. The picture describes the resulting deployment in node du3-ldc1. 
+* Pods above represent the timing solution for T-GM of a node labelled `gm-1`. The picture describes the resulting deployment in node `du3-ldc1` 
 
 ![Timing Stack](imgs/tgm.png)
 
