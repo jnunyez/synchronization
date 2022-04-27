@@ -14,16 +14,15 @@ Synchronization is of paramount importance for 5G O-RAN (Open Radio Access Netwo
 ## Table of Contents
 
 1. [Fundamentals of Synchronization for 5G O-RAN](#background)
-2. [Pre-requisites](#intro)
+2. [Pre-requisites](#pre-requisites)
 3. [Installing Silicom Timesync Operator](#installation)
 4. [Telecom Grandmaster Provisioning](#stsconfig)
 6. [Telecom Grandmaster Operation](#stsops)
 7. [Uninstalling Silicom Timesync Operator](#uninstalling)
 8. [Wrapup](#conclusion)
-9. [References](#refs)
+<!--9. [References](#refs)-->
 
 The term *Project* and *namespace* maybe used interchangeably in this guide.
-
 
 
 ## Fundamentals of Synchronization for 5G O-RAN <a name="background"></a>
@@ -73,13 +72,12 @@ Before we proceed to the installation ensure you have:
 
 - OCP cluster with version bigger or equal than 4.8.36 with at least 1 baremetal worker node with access to `quay.io`
 
-- Baremetal Worker Node Requirements
+- Worker Node based on [SYS-210P][5] is used in this post but other platforms such as DellX11 or DellX12 should work.
   - RHEL 8 with kernel version bigger or equal than 4.18.0-305.34.2.el8_4.x86_64
-  - PCI-Express 4.0 x16 free slot
+  - PCI-Express 4.0 x16 free slot in worker node
 
-- An image with lspci and lsusb utilities installed than can be provisioned in worker node
+- An image with lspci, ethtools, and lsusb utilities installed than can be provisioned in worker node
 
-- [Node Feature Discovery][3] installed in the same namespace as the Silicom TimeSync Operator
 
 ## Installing Silicom Timesync Operator <a name="installation"></a>
 
@@ -95,7 +93,7 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
 
 <figcaption> 
 
-**Figure 3** GPS Input Silicom Time Sync Card 
+**Figure 3** SMA Connector for GPS input receiver in Silicom TimeSync (STS4) Card 
 
 </figcaption>
 
@@ -136,7 +134,7 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
    53:00.3 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02) 
   ```
 
-- The firmware in the card must be greater than 3.2. Check firmware of the card by getting the interface name: 
+- The firmware in the card must be greater or equal than 3.2, check the firmware version of the Intel E810 card by getting the interface name: 
 
   ```console
   # ls  /sys/bus/pci/devices/0000\:51\:00.2/net
@@ -169,9 +167,10 @@ Now that the card has been installed, we proceed to the installation of the oper
           * NFD, SRO and Silicom can live in their own namespaces
           * Silicom operand should live in a different namespace than silicom operator.
 -->
-1. We are going to use the namespace we create to install the operator from the OperatorHub and bind an operatorGroup to that object too.  We select the namespace from the operatorhub console. However, note that to allow the installation in the selected namespace. NodeFeature Discovery operator should be preferably installed to automate the labelling of the nodes equipped with a Silicom Time Sync card. The current version requires NodeFeature Discovery to coexists in the same namespace as Silicom TimeSync operator.
-* select No additional labels  
-* select `No restrictions' in Default network policy.
+1. We are going to use the namespace we create to install the operator from the OperatorHub and bind an operatorGroup to that object too.  We select the namespace from the operatorhub console. However, note that to allow the installation in the selected namespace. NodeFeature Discovery operator should be preferably installed (before or after you install the Silicom STS operator) to automate the labelling of the nodes equipped with a Silicom Time Sync card. The current version requires NodeFeature Discovery to coexists in the same namespace as Silicom TimeSync operator.
+
+  * select *No additional labels* in **Labels**
+  * select *No restrictions* in **Default network policy**
 <!--it is required that i) the operator must be a member of an operatorgroup that selects one namespace (ownNamespace or singlenamespace).
       - Operator is considered to be a member of an operatorgroup if 1) CSV of the operator is installed in the same namespace as the operator group, 2) install mode in CSV support the namespaces targetted by the [operator group][1]
 -->
@@ -432,10 +431,12 @@ oc delete stsnode du3-ldc1
 * If we want to fully delete the set of elements created by the operator we need to delete the stsoperatorconfig CR. The action below will delete the stsoperatorconfig daemonset (i.e., the sts-plugin) and the nfd and sro deploment (if used). 
 -->      
 
-<!--## Wrap-up <a name="stsconfig"></a>
+## Wrap-up <a name="conclusion"></a>
 
+<!--
 ## References <a name="refs"></a>
 -->
 [1]: https://docs.openshift.com/container-platform/4.8/operators/understanding/olm/olm-understanding-operatorgroups.html#olm-operatorgroups-target-namespace_olm-understanding-operatorgroups
 [2]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/
 [3]: https://docs.openshift.com/container-platform/4.9/hardware_enablement/psap-node-feature-discovery-operator.html
+[4]: https://www.supermicro.com/en/products/system/IoT/2U/SYS-210P-
