@@ -183,10 +183,18 @@ Now that the card has been installed, we proceed to the installation of the oper
 
 </figcaption>
 
+2. Install Node Feature Discovery operator. Once you install the `Node Feature Discovery Operator` in `silicom` namespace we proceed to install silicom Time Sync operator.
 
-2. Install operator. This operator requires to install the [`Node Feature Discovery Operator`][3] to run in the same namespace just created. Once you install the `Node Feature Discovery Operator` in `silicom` namespace we proceed to install silicom Time Sync operator.
+![operatornfd](imgs/01_installnfd.png)
 
-![operator](imgs/01_install.png)
+  * select *alpha* as **Update channel** 
+  * select *A specific namespace on the cluster* as **Installation mode**
+  * select *silicom* namespace as **Installed Namespace**  
+  * select *Automatic* as **Update approval**
+
+3. Install the certified Silicom TimeSync operator.  
+
+![operatortsync](imgs/01_install.png)
 
   * select *alpha* as **Update channel** 
   * select *A specific namespace on the cluster* as **Installation mode**
@@ -195,7 +203,8 @@ Now that the card has been installed, we proceed to the installation of the oper
 
 <!--
 * The only installation mode supported from the operatorhub is `for all namespaces in the cluster`: operator will be available in all Namespaces. This means that the namespaces this operator can watch are ALL.
-The operator gets installed in namespace `openshift-silicom` by default or in the namespace specified by the OCP administrator.-->
+The operator gets installed in namespace `openshift-silicom` by default or in the namespace specified by the OCP administrator.
+-->
 
 ![installed](imgs/02_install.png)
 
@@ -207,7 +216,7 @@ The operator gets installed in namespace `openshift-silicom` by default or in th
 
 Once the operator is installed with the CRDs exposed in the figure above, we proceed to instantiate the CRs needs still to be instantiated. When you install an operator you are not installing the services managed by that operator. 
 
-3. Provision StsOperatorConfig CR object to set the desired timing stack configuration. The CRD StsOperator
+3. Provision StsOperatorConfig CR object to set the desired timing stack configuration. At this point the operator will create the Node Feature Discovery CR to detect worker nodes equipped with an Silicom Time Sync card. Recall that Silicom Time Sync operator requires to install the [`Node Feature Discovery Operator`][3] in the same namespace.
 
 ```yaml
 cat <<EOF | oc apply -f -
