@@ -262,9 +262,9 @@ apiVersion: sts.silicom.com/v1alpha1
 kind: StsConfig
 metadata:
   name: gm-1
-  namespace: openshift-operators
+  namespace: silicom
 spec:
-  namespace: openshift-operators
+  namespace: silicom
   imageRegistry: quay.io/silicom
   nodeSelector:
     sts.silicom.com/config: "gm-1"
@@ -300,7 +300,7 @@ oc explain StsConfig.spec
 oc explain StsConfig.spec.GnssSpec
 ```
 
-* Ultimately you should see from terminal three new pods:
+* Ultimately Silicom TimeSync is composed by three pods:
 
 ```console
 gm-1-du3-ldc1-gpsd-964ch                  2/2     Running   0
