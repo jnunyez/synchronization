@@ -192,7 +192,7 @@ Now that the card has been installed, we proceed to the installation of the oper
   * select *silicom* namespace as **Installed Namespace**  
   * select *Automatic* as **Update approval**
 
-3. Install the certified Silicom TimeSync operator.  
+3. Install the certified Silicom TimeSync operator in the namespace we created in `silicom` namespace. 
 
 ![operatortsync](imgs/01_install.png)
 
