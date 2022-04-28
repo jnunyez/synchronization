@@ -288,27 +288,35 @@ spec:
 EOF                 
 ```
 
-* For a full listing of the possible configuration parameters and their possible values.
+* For a full listing of the possible TimeSync configuration parameters and their possible values:
 
 ``` console
 oc explain StsConfig.spec
 ```
 
-* For a full listing of possible Gnss configuration explanations
+* For a full listing of possible Gnss configuration parameters:
 
 ``` console
 oc explain StsConfig.spec.GnssSpec
 ```
 
-* Ultimately Silicom TimeSync is composed by three pods:
+* After deploying StsConfig CR we can take a look at the set of pods present in `silicom` namespace:
 
 ```console
-gm-1-du3-ldc1-gpsd-964ch                  2/2     Running   0
-gm-1-du3-ldc1-phc2sys-6fv9k               1/1     Running   0          
-gm-1-du3-ldc1-tsync-pkxwv                 2/2     Running   0          
+# oc get pods -n silicom          
+gm-1-du3-ldc1-gpsd-b4v49                  2/2     Running   0          57s
+gm-1-du3-ldc1-phc2sys-gss5c               1/1     Running   0          57s
+gm-1-du3-ldc1-tsync-gmwl4                 2/2     Running   0          57s
+nfd-controller-manager-b6c99794d-rj4q5    2/2     Running   0          3m31s
+nfd-master-h47wb                          1/1     Running   0          2m40s
+nfd-master-qfgj9                          1/1     Running   0          2m39s
+nfd-master-rtcfs                          1/1     Running   0          2m40s
+nfd-worker-4vprx                          1/1     Running   0          2m39s
+sts-controller-manager-6b75cc8b45-mrd5c   2/2     Running   0          3m6s
+sts-plugin-lpxlh                          1/1     Running   0          2m40s
 ```
 
-* Pods above represent the timing solution for T-GM of a node labelled `gm-1`. The picture describes the resulting deployment in node `du3-ldc1` 
+Pods above represent the timing solution for T-GM of a node labelled `gm-1`. Labelling of the nodes is controlled by `nfd` and `sts-plugin`. The picture below describes the resulting timing Sync deployment in the worker node. 
 
 ![Timing Stack](imgs/tgm.png)
 

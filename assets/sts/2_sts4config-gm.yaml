@@ -2,9 +2,9 @@ apiVersion: sts.silicom.com/v1alpha1
 kind: StsConfig
 metadata:
   name: gm-1
-  namespace: openshift-operators
+  namespace: silicom
 spec:
-  namespace: openshift-operators
+  namespace: silicom
   imageRegistry: quay.io/silicom
   nodeSelector:
     sts.silicom.com/config: "gm-1"
@@ -22,6 +22,6 @@ spec:
       holdoff: 500
       synce: 1
       mode: Master
-      ethPort: 3
+      ethPort: 2
       qlEnable: 1
       ql: 2
