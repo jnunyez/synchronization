@@ -449,7 +449,7 @@ oc delete stsnode du3-ldc1
 -->      
 
 ## Wrap-up <a name="conclusion"></a>
-
+This post provided a detailed technical how-to of the installation, operation and uninstallation of the new certified Silicom Time Sync operato to target 5G synchronization in O-RAN deployments. By taking care of low-level hardware this operator does a really good job ob abstracting details of managing both the HW NIC embedding accurate HW clocks and Sw Synchronization stack so that the OCP administrator does not have to be an expert in 5G synchronization and O-RAN. In future posts we could focus on more complex synchronization topologies setups including boundary clocks and slave clocks.
 <!--
 ## References <a name="refs"></a>
 -->
