@@ -9,7 +9,7 @@ We want to publish a blog that contains a guided example of using the STS Operat
 -   Using T-GM
 -->
 
-Synchronization is of paramount importance for 5G O-RAN (Open Radio Access Networks). Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation, we will monitor the time synchronization functionalities on Telecom Grand Master (T-GM) node.
+Synchronization is of paramount importance for 5G O-RAN (Open Radio Access Networks). Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation, we will monitor the time synchronization functionalities on Telecom Grand Master (T-GM) node. 
 
 ## Table of Contents
 
@@ -39,14 +39,14 @@ The term *Project* and *namespace* maybe used interchangeably in this guide.
 
 In 5G O-RAN, multiple distributed network elements require getting Frequency, Time and Phase info. In a packet-based network Precision Time Protocol (PTP) along with Synchronous Ethernet (SyncE) are prominently the dedicated protocols to carry timing information. The synchronization solution consists of the following elements:
 
-- The recipient of the GNSS information in a PTP network is referred to as the Telecom Grand Master (T-GM). The T-GM consumes the frequency, phase, and timing info from a Primary Reference Time Clock (PRTC) to calibrate its clock and distribute the frequency, phase, and time signal to its connected network elements lower in the synchronization hierarchy.
+- The recipient of the GNSS information in a PTP network is referred to as the Telecom Grand Master (T-GM). The T-GM consumes the frequency, phase, and timing info from a Primary Reference Time Clock (PRTC) to calibrate its clock and distribute the frequency, phase, and time signal via PTP to its connected network elements lower in the synchronization hierarchy.
 
-- The Telecom Time Slave Clock (T-TSC) functionality terminates the PTP protocol and tries to estimate the correct time from the T-GM. An O-RRU contain the slave functionality and takes the time information from the slave for its usage.
+- The Telecom Time Slave Clock (T-TSC) functionality terminates the PTP protocol and recovers the clock from one or more master clocks. An O-RRU contains the slave functionality and takes the time information from the slave for its usage.
 
-- The Telecom Boundary Clock (T-BC) includes both T-GM and T-TSC functionalities. At the slave side, it receives PTP packet from the GM or another boundary clock, terminates the PTP, and estimates timing from the T-GM. At master side, a new PTP packet is created based on the timing information of the boundary clock and pass it to the next boundary or slave clock in the chain. 
+- The Telecom Boundary Clock (T-BC) combines both slave and master functions. At the slave side, it receives PTP packets from, e.g., one or more master clocks, terminates the PTP, and recovers clock from the best master clock, using best master clock algorithm (BMCA). At master side, new PTP sessions are created based on the timing information of the boundary clock. Information in PTP is passed to the next boundary or slave clock in the chain. 
 
 
-T-BC, T-TSC, and T-GM functionalities can be implemented using specific NICs with time synchronization support. [Silicom TimeSync NICs][2] are based on Intel E810 NIC controllers and phase-locked loop (PLL)-based clocks to support both PTP and SyncE to target O-RAN synchronization requirements in 5G systems. In what follows, we present a step-by-step guide to use the Silicom operator to automate the installation, monitoring, and operation of Silicom Time Sync NICs as well as the TimeSync SW stack (i.e., the operands) in OpenShift.
+T-BC, T-TSC, and T-GM functionalities can be implemented using specific NICs with time synchronization support. [Silicom TimeSync NICs][2] are based on Intel E810 NIC controllers and phase-locked loop (PLL)-based combined with an oscillator of high accuracy to comply with both PTP and SyncE in order to target O-RAN synchronization requirements in 5G systems. In what follows, we present a step-by-step guide to use the Silicom operator to automate the installation, monitoring, and operation of Silicom Time Sync NICs as well as the TimeSync SW stack (i.e., the operands) in OpenShift.
 
 ## Pre-requisites <a name="pre-requisites"></a>
 
