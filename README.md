@@ -214,12 +214,12 @@ The operator gets installed in namespace `openshift-silicom` by default or in th
 
 </figcaption>
 
-Once the operator is installed with the CRDs exposed in the figure above, we proceed to instantiate the CRs needs still to be instantiated. When you install an operator you are not installing the services managed by that operator. 
+Once the operator is installed with the CRDs exposed in the figure above, we proceed to instantiate the CRs. When you install an operator you are not installing the services managed by that operator. 
 
-3. Provision StsOperatorConfig CR object to set the desired timing stack configuration. At this point the operator will create the Node Feature Discovery CR to detect worker nodes equipped with an Silicom Time Sync card. Recall that Silicom Time Sync operator requires to install the [`Node Feature Discovery Operator`][3] in the same namespace.
+3. Provision StsOperatorConfig CR object to set the desired timing stack configuration. 
 
 ```yaml
-cat <<EOF | oc apply -f -
+# cat <<EOF | oc apply -f -
 apiVersion: sts.silicom.com/v1alpha1
 kind: StsOperatorConfig
 metadata:
@@ -239,6 +239,14 @@ spec:
     build: false
 EOF
 ```  
+At this point the operator will create the Node Feature Discovery CR to detect worker nodes equipped with an Silicom Time Sync card. This CR is consumed by the [`Node Feature Discovery Operator`][3]. Recall that Silicom Timing Synchronization operator requires the [`Node Feature Discovery Operator (nfd)`][3] in the same namespace. In our case we have one node with an STS4 card, thus the node should have been automatically labelled by the nfd. Let's check that:
+
+```
+#oc describe node du3-ldc1 | grep custom-silicom.sts.devices=true
+                    feature.node.kubernetes.io/custom-silicom.sts.devices=true
+```
+
+After nodes have been labelled, the Silicom Timing Synchronization operator creates a daemonset called `sts-plugin` in those nodes labelled by nfd with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. This daemonset is in charge of maintaining information of the GPS information and querying the STS cards to get status port inforomation.
 
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
 
@@ -316,7 +324,7 @@ sts-controller-manager-6b75cc8b45-mrd5c   2/2     Running   0          3m6s
 sts-plugin-lpxlh                          1/1     Running   0          2m40s
 ```
 
-Pods above represent the timing solution for T-GM of a node labelled `gm-1`. Labelling of the nodes is controlled by `nfd` and `sts-plugin`. The picture below describes the resulting timing Sync deployment in the worker node. 
+Pods above represent the timing solution for T-GM of a node labelled `gm-1`. The picture below describes the resulting timing Sync deployment in the worker node. 
 
 ![Timing Stack](imgs/tgm.png)
 
@@ -325,6 +333,12 @@ Pods above represent the timing solution for T-GM of a node labelled `gm-1`. Lab
 **Figure 5** Deployment of a T-GM 
 
 </figcaption>
+
+In summary, the stsconfig CR instance triggers the creation of the following pods via the silicom controller pod:
+
+- `gpsd pod` that reads and distributes the timing information gathered from the GPS receiver.
+- `tsync pod` with that is in charge of aligning the HW clock of the card to the timing information received from `gpsd` container and distribute this information to other pods (e.g., a DU in the same node) or to other nodes lower in the synchronization hierarchy
+- `phc2sys pod` pod provisioned by the silicom that aligns the system clock to the HW clock.
 
 
 <!--
