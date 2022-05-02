@@ -9,7 +9,7 @@ We want to publish a blog that contains a guided example of using the STS Operat
 -   Using T-GM
 -->
 
-Synchronization is of paramount importance for 5G O-RAN (Open Radio Access Networks). Below are the steps to install the Silicom TimeSync Operator on Red Hat OpenShift. Towards the end of the installation, we will monitor the time synchronization functionalities on Telecom Grand Master (T-GM) node. 
+Synchronization is of paramount importance for 5G O-RAN (Open Radio Access Networks). Below are the steps to install the Silicom Timing Synchronization (STS) Operator on Red Hat OpenShift. Towards the end of the installation, we will monitor the time synchronization functionalities on Telecom Grand Master (T-GM) node.
 
 ## Table of Contents
 
@@ -46,27 +46,27 @@ In 5G O-RAN, multiple distributed network elements require getting Frequency, Ti
 - The Telecom Boundary Clock (T-BC) combines both slave and master functions. At the slave side, it receives PTP packets from, e.g., one or more master clocks, terminates the PTP, and recovers clock from the best master clock, using best master clock algorithm (BMCA). At master side, new PTP sessions are created based on the timing information of the boundary clock. Information in PTP is passed to the next boundary or slave clock in the chain. 
 
 
-T-BC, T-TSC, and T-GM functionalities can be implemented using specific NICs with time synchronization support. [Silicom TimeSync NICs][2] are based on Intel E810 NIC controllers and phase-locked loop (PLL)-based combined with an oscillator of high accuracy to comply with both PTP and SyncE in order to target O-RAN synchronization requirements in 5G systems. In what follows, we present a step-by-step guide to use the Silicom operator to automate the installation, monitoring, and operation of Silicom Time Sync NICs as well as the TimeSync SW stack (i.e., the operands) in OpenShift.
+T-BC, T-TSC, and T-GM functionalities can be implemented using specific NICs with time synchronization support. [Silicom Timing Synchornization (STS) NICs][2] are based on Intel E810 NIC controllers and phase-locked loop (PLL)-based combined with an oscillator of high accuracy to comply with both PTP and SyncE in order to target O-RAN synchronization requirements in 5G systems. In what follows, we present a step-by-step guide to use the STS operator to automate the installation, monitoring, and operation of STS cards as well as the STS SW stack (i.e., the operands) in OpenShift.
 
 ## Pre-requisites <a name="pre-requisites"></a>
 
 Before we proceed to the installation ensure you have:
 
 - Terminal environment
-  - Your terminal has the following commands
+  - Your terminal has the following commands:
     - [oc](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc) binary.
 
-- Physical Silicom Time Sync card 
+- Physical Silicom Timing Synchronization (STS) card. In particular an [STS4](https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/#:~:text=Silicom's%20STS4%20TimeSync%20card%20capable,in%20Master%20and%20Slave%20mode.) or [STS2](https://www.silicom-usa.com/pr/server-adapters/networking-adapters/10-gigabit-ethernet-networking-adapters/p410g8ts81-timesync-server-adapter/) card will do.
 
 ![Silicom Card](imgs/01_card.png)
 
 <figcaption> 
 
-**Figure 2** Silicom Time Sync Card 
+**Figure 2** Silicom Timing Synchronization (STS) Card
 
 </figcaption>
 
-- A GPS antenna with clear sight of the sky connected to the GNSS receiver of the STS4/ST2 card.
+- A GPS antenna with clear sight of the sky connected to the GNSS receiver of the STS card.
 
 - [Authenticate as Cluster Admin inside your environment](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands) in an OCP Cluster.
 
@@ -449,11 +449,11 @@ oc delete stsnode du3-ldc1
 -->      
 
 ## Wrap-up <a name="conclusion"></a>
-This post provided a detailed technical how-to of the installation, operation and uninstallation of the new certified Silicom Time Sync operato to target 5G synchronization in O-RAN deployments. By taking care of low-level hardware this operator does a really good job ob abstracting details of managing both the HW NIC embedding accurate HW clocks and Sw Synchronization stack so that the OCP administrator does not have to be an expert in 5G synchronization and O-RAN. In future posts we could focus on more complex synchronization topologies setups including boundary clocks and slave clocks.
+This post provided a detailed technical how-to of the installation, operation and uninstallation of the new certified Silicom Time Sync operato to target 5G synchronization in O-RAN deployments. By taking care of low-level hardware this operator does a really good job ob abstracting details of managing both the HW NIC embedding accurate HW clocks and Sw Synchronization stack so that the OCP administrator does not have to be an expert in 5G synchronization and O-RAN. In future posts we could focus on more complex and dynamic synchronization topologies setups including boundary clocks and slave clocks. For instance, Silicom Timing Synchronization Operator can be used to configure the synchronization topology either during initialization time or runtime to operate as T-BC or T-TSC (more information on those modes will be included in following posts).
 <!--
 ## References <a name="refs"></a>
 -->
 [1]: https://docs.openshift.com/container-platform/4.8/operators/understanding/olm/olm-understanding-operatorgroups.html#olm-operatorgroups-target-namespace_olm-understanding-operatorgroups
 [2]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/
 [3]: https://docs.openshift.com/container-platform/4.9/hardware_enablement/psap-node-feature-discovery-operator.html
-[4]: https://www.supermicro.com/en/products/system/IoT/2U/SYS-210P-
+[4]: https://smicro.eu/supermicro-sys-210p-frdn6t-1
