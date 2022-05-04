@@ -134,7 +134,7 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
    53:00.3 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02) 
   ```
 
-- The firmware in the card must be greater or equal than 3.2, check the firmware version of the Intel E810 card by getting the interface name: 
+- The firmware in the card must be greater or equal than 3.1, check the firmware version of the Intel E810 card by getting the interface name: 
 
   ```console
   # ls  /sys/bus/pci/devices/0000\:51\:00.2/net
@@ -142,7 +142,7 @@ There are two Operands to manage: one is the Silicom TimeSync cards and the othe
   # ethtool -i enp81s0f2 | grep firmware
   firmware-version: 3.10 0x8000d86d 1.3106.0
   ```
-- Assure that the GPS input is getting GPS data (9600baud rate, :
+- Assure that the GPS input is getting GPS data:
 
   ```console
   # stty -F /dev/ttyACM0 raw
@@ -167,11 +167,16 @@ Now that the card has been installed, we proceed to the installation of the oper
           * NFD, SRO and Silicom can live in their own namespaces
           * Silicom operand should live in a different namespace than silicom operator.
 -->
-1. We are going to use the namespace we create to install the operator from the OperatorHub and bind an operatorGroup to that object too.  We select the namespace from the operatorhub console. However, note that to allow the installation in the selected namespace. NodeFeature Discovery operator should be preferably installed (before or after you install the Silicom STS operator) to automate the labelling of the nodes equipped with a Silicom Time Sync card. The current version requires NodeFeature Discovery to coexists in the same namespace as Silicom TimeSync operator.
+
+#### Create namespace
+We first create a namespace from the Web Console. Go to **Administration->Namespaces** and click 
+**Create Namespace**: 
 
   * select *No additional labels* in **Labels**
   * select *No restrictions* in **Default network policy**
-<!--it is required that i) the operator must be a member of an operatorgroup that selects one namespace (ownNamespace or singlenamespace).
+<!--
+However, note that to allow the installation in the selected namespace. NodeFeature Discovery operator should be preferably installed (before or after you install the Silicom STS operator) to automate the labelling of the nodes equipped with a Silicom Time Sync card. The current version requires NodeFeature Discovery to coexists in the same namespace as Silicom TimeSync operator.
+it is required that i) the operator must be a member of an operatorgroup that selects one namespace (ownNamespace or singlenamespace).
       - Operator is considered to be a member of an operatorgroup if 1) CSV of the operator is installed in the same namespace as the operator group, 2) install mode in CSV support the namespaces targetted by the [operator group][1]
 -->
 
@@ -183,23 +188,26 @@ Now that the card has been installed, we proceed to the installation of the oper
 
 </figcaption>
 
-2. Install Node Feature Discovery operator. Once you install the `Node Feature Discovery Operator` in `silicom` namespace we proceed to install silicom Time Sync operator.
+#### Install Node Feature Discovery Operator
+We proceed to install the Node Feature Discovery Operator in the `silicom` namespace:
+
+  * select *alpha* as **Update channel** 
+  * select *A specific namespace on the cluster* as **Installation mode**
+  * select *silicom* namespace as **Installed Namespace**  
+  * select *Automatic* as **Update approval**
 
 ![operatornfd](imgs/01_installnfd.png)
 
+
+#### Install Silicom Timing Synchronization Operator 
+By means of Web console, we install the Silicom Timing Synchronization operator in the `silicom` namespace: 
+
   * select *alpha* as **Update channel** 
   * select *A specific namespace on the cluster* as **Installation mode**
   * select *silicom* namespace as **Installed Namespace**  
   * select *Automatic* as **Update approval**
-
-3. Install the certified Silicom TimeSync operator in the namespace we created in `silicom` namespace. 
 
 ![operatortsync](imgs/01_install.png)
-
-  * select *alpha* as **Update channel** 
-  * select *A specific namespace on the cluster* as **Installation mode**
-  * select *silicom* namespace as **Installed Namespace**  
-  * select *Automatic* as **Update approval**
 
 <!--
 * The only installation mode supported from the operatorhub is `for all namespaces in the cluster`: operator will be available in all Namespaces. This means that the namespaces this operator can watch are ALL.
@@ -216,7 +224,8 @@ The operator gets installed in namespace `openshift-silicom` by default or in th
 
 Once the operator is installed with the CRDs exposed in the figure above, we proceed to instantiate the CRs. When you install an operator you are not installing the services managed by that operator. 
 
-3. Provision StsOperatorConfig CR object to set the desired timing stack configuration. 
+#### Install StsOperatorConfig CR
+Provision StsOperatorConfig CR object to set the desired timing stack configuration. Execute the following:
 
 ```yaml
 # cat <<EOF | oc apply -f -
@@ -231,22 +240,20 @@ spec:
     tsyncExtts: quay.io/silicom/tsync_extts:1.0.0 
     phcs2Sys: quay.io/silicom/phcs2sys:3.1.1
     grpcTsyncd: quay.io/silicom/grpc-tsyncd:2.1.1.1 
-    stsPlugin: quay.io/silicom/sts-plugin:0.0.5
+    stsPlugin: quay.io/silicom/sts-plugin:0.0.6
     gpsd: quay.io/silicom/gpsd:3.23.1
-  grpcSvcPort: 50051
-  gpsSvcPort: 2947
   sro:
     build: false
 EOF
 ```  
-At this point the operator will create the Node Feature Discovery CR to detect worker nodes equipped with an Silicom Time Sync card. This CR is consumed by the [`Node Feature Discovery Operator`][3]. Recall that Silicom Timing Synchronization operator requires the [`Node Feature Discovery Operator (nfd)`][3] in the same namespace. In our case we have one node with an STS4 card, thus the node should have been automatically labelled by the nfd. Let's check that:
+This will trigger in the operator the instantiation of a Node Feature Discovery (NFD) CR to detect worker nodes equipped with an Silicom Time Sync card. This CR is consumed by the [`Node Feature Discovery Operator`][3]. Note that Silicom Timing Synchronization operator requires the presence [`NFD Operator`][3] in the same namespace. In this case, we have one node with an STS4 card, thus the node should have been automatically labelled by NFD with with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. Let's check that:
 
-```
-#oc describe node du3-ldc1 | grep custom-silicom.sts.devices=true
+```console
+# oc describe node du3-ldc1 | grep custom-silicom.sts.devices=true
                     feature.node.kubernetes.io/custom-silicom.sts.devices=true
 ```
 
-After nodes have been labelled, the Silicom Timing Synchronization operator creates a daemonset called `sts-plugin` in those nodes labelled by nfd with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. This daemonset is in charge of maintaining information of the GPS information and querying the STS cards to get status port inforomation.
+Finally, the Silicom Timing Synchronization operator creates a daemonset called `sts-plugin` in those nodes labelled by NFD with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. This daemonset is in charge of maintaining information of the GPS information and querying the STS cards to get status port information.
 
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
 
@@ -255,13 +262,15 @@ After nodes have been labelled, the Silicom Timing Synchronization operator crea
 * Not supported: automated discovery of nodes that are directly connected to the GPS signal to add the proper label.
 -->
 
-1. Add a node label `gm-1` in the worker node that has GPS cable connected to the (i.e., in our case worker node named `du3-ldc1`).
+## Label Node
+Add a node label `gm-1` in the worker node that has GPS cable connected to the (i.e., in our case worker node named `du3-ldc1`).
 
 ```console
 oc label node du3-ldc1 sts.silicom.com/config="gm-1" 
 ```
 
-2. Create a StsConfig CR object to provision the desired Telecom PTP profile (i.e., T-GM.8275.1).
+## Instantiate StsConfig CR
+Create a StsConfig CR object to provision the desired Telecom PTP profile (i.e., T-GM.8275.1).
 
 
 ```yaml
@@ -299,13 +308,13 @@ EOF
 * For a full listing of the possible TimeSync configuration parameters and their possible values:
 
 ``` console
-oc explain StsConfig.spec
+# oc explain StsConfig.spec
 ```
 
 * For a full listing of possible Gnss configuration parameters:
 
-``` console
-oc explain StsConfig.spec.GnssSpec
+```console
+# oc explain StsConfig.spec.GnssSpec
 ```
 
 * After deploying StsConfig CR we can take a look at the set of pods present in `silicom` namespace:
@@ -336,10 +345,9 @@ Pods above represent the timing solution for T-GM of a node labelled `gm-1`. The
 
 In summary, the stsconfig CR instance triggers the creation of the following pods via the silicom controller pod:
 
-- `gpsd pod` that reads and distributes the timing information gathered from the GPS receiver.
-- `tsync pod` with that is in charge of aligning the HW clock of the card to the timing information received from `gpsd` container and distribute this information to other pods (e.g., a DU in the same node) or to other nodes lower in the synchronization hierarchy
-- `phc2sys pod` pod provisioned by the silicom that aligns the system clock to the HW clock.
-
+- `gpsd pod` that reads and distributes the timing information gathered from the GPS receiver. It embeds also a container that aligns the Silicom HW clock to the external timing information gatehred from the GPS.
+- `tsync pod` in charge of aligning the HW clock of the Silicom card to the timing information received from `gpsd` container and distribute this information to other pods (e.g., a DU in the same node) or to other nodes lower in the synchronization hierarchy
+- `phc2sys pod` that aligns the system clock to the Silicom HW clock.
 
 <!--
 mode: Telecom PTP profiles as defined by the ITU-T. T-GM.8275.1 PTP profile corresponds to the profile for the RAN fronthaul network. 
@@ -352,10 +360,9 @@ interfaces
 
 ## Telecom Grandmaster Operation <a name="stsops"></a>
 
-The timing stack is deployed but, how do we know it is synchronizing the clock in the Silicom network card?
-The time sync stack exposes an API based on gRPC to query timing status information.
+The timing stack is deployed but, how do we know it is synchronizing the clock in the Silicom network card? The timing synchronization stack exposes an API based on gRPC to query timing status information.
 
-1. Let's execute a grpc client in the container exposing the gRPC API.
+1. Execute a grpc client in the container exposing the gRPC API. This command below launches gRPC client:
 
 ```console
 oc exec -it gm-1-du3-ldc1-tsync-pkxwv -c du3-ldc1-grpc-tsyncd -- tsynctl_grpc 
@@ -363,14 +370,14 @@ Tsynctl gRPC Client v1.0.9
 $
 ```
 
-2. Check the status of the clock in the Silicom network card. Locked status is a good sympthon. We need to know to what primary reference time it has been locked to.
+2. Check the status of the GM clock in the Silicom network card.  
 
 ```console
 $ get_clk_class 
 Clock Class: 6, LOCKED
 ```
 
-3. Check more privileged timing information status related to the clock, PTP, and SyncE.
+3. If we want to gather more timing information status related to the clock, PTP, SyncE, and GNSS Data:
 
 ```console
 $ register 1 2 3 4 5
