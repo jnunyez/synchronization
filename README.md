@@ -198,6 +198,11 @@ We proceed to install the Node Feature Discovery Operator in the `silicom` names
 
 ![operatornfd](imgs/01_installnfd.png)
 
+<figcaption> 
+
+**Figure 4** Install NFD Operator 
+
+</figcaption>
 
 #### Install Silicom Timing Synchronization Operator 
 By means of Web console, we install the Silicom Timing Synchronization operator in the `silicom` namespace: 
@@ -214,11 +219,11 @@ By means of Web console, we install the Silicom Timing Synchronization operator 
 The operator gets installed in namespace `openshift-silicom` by default or in the namespace specified by the OCP administrator.
 -->
 
-![installed](imgs/02_install.png)
+<!--![installed](imgs/02_install.png)-->
 
 <figcaption> 
 
-**Figure 4** Install Operator 
+**Figure 5** Install Silicom Timing Synchronization Operator 
 
 </figcaption>
 
@@ -339,7 +344,7 @@ Pods above represent the timing solution for T-GM of a node labelled `gm-1`. The
 
 <figcaption> 
 
-**Figure 5** Deployment of a T-GM 
+**Figure 6** Deployment of a T-GM 
 
 </figcaption>
 
@@ -428,7 +433,7 @@ Now we proceed to uninstall the operator. Uninstalling the operator can be done 
 
 <figcaption> 
 
-**Figure 6** Uninstall operator 
+**Figure 7** Uninstall operator 
 
 </figcaption>
 
