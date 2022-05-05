@@ -9,7 +9,7 @@ We want to publish a blog that contains a guided example of using the STS Operat
 -   Using T-GM
 -->
 
-Are you working with baremetal clusters and looking for a timing and synchronization solution for your containerized workloads?  The Silicom Timing Synchronization (STS) Operator(https://catalog.redhat.com/software/containers/silicomltd/silicom-sts-operator/6273e6ad906717cd8461696a) was just released as a Certified Operator on OpenShift.
+Are you working with baremetal clusters and looking for a timing and synchronization solution for your containerized workloads?  The Silicom Timing Synchronization (STS) Operatorx was just released as a [Certified Operator on OpenShift](https://catalog.redhat.com/software/containers/silicomltd/silicom-sts-operator/6273e6ad906717cd8461696a).
 
 Synchronization and precise timing via Global Positioning Systems (GPS) is of paramount importance for 5G O-RAN (Open Radio Access Networks).  In this blog, we are going to show how easy it is to install the STS Operator on Red Hat OpenShift Container Platform, and use it to configure specialized NIC adapters from Silicom in our OpenShift environment. Towards the end of the installation, we will monitor the time synchronization functionality on a Telecom Grand Master (T-GM) node.
 
