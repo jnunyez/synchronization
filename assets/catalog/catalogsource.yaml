@@ -1,0 +1,12 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: test-silicom-catalog
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: quay.io/jnunez/sts-operator-catalog:0.0.6
+  displayName: testing-catalog
+  updateStrategy:
+    registryPoll:
+      interval: 30m

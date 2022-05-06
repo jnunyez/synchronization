@@ -1,15 +1,6 @@
 # Silicom TimeSync Operator on OpenShift
-<!--
-Red Hat® OpenShift® blah blah blah.
-We want to publish a blog that contains a guided example of using the STS Operator on OpenShift. This should contain:
 
--   Operator Overview
--   Pictorial Overview of T-GM, T-BC, T-SC concepts
--   Operator Installation
--   Using T-GM
--->
-
-Are you working with baremetal clusters and looking for a timing and synchronization solution for your containerized workloads?  The Silicom Timing Synchronization (STS) Operator was just released as a [Certified Operator on OpenShift](https://catalog.redhat.com/software/containers/silicomltd/silicom-sts-operator/6273e6ad906717cd8461696a).
+Are you working with baremetal clusters and looking for a timing and synchronization solution for your containerized workloads?  The Silicom Timing Synchronization (STS) Operator was just released as a [Certified Operator on OpenShift][5]
 
 Synchronization and precise timing via Global Positioning Systems (GPS) is of paramount importance for 5G O-RAN (Open Radio Access Networks).  In this blog, we are going to show how easy it is to install the STS Operator on Red Hat OpenShift Container Platform, and use it to configure specialized NIC adapters from Silicom in our OpenShift environment. Towards the end of the installation, we will monitor the time synchronization functionality on a Telecom Grand Master (T-GM) node.
 
@@ -17,17 +8,14 @@ Synchronization and precise timing via Global Positioning Systems (GPS) is of pa
 
 1. [Fundamentals of Synchronization for 5G O-RAN](#background)
 2. [Pre-requisites](#pre-requisites)
-3. [Installing Silicom Timesync Operator](#installation)
+3. [Installing Silicom Timing Synchronization Operator](#installation)
 4. [Telecom Grandmaster Provisioning](#stsconfig)
 6. [Telecom Grandmaster Operation](#stsops)
-7. [Uninstalling Silicom Timesync Operator](#uninstalling)
+7. [Uninstalling Silicom Timing Synchronization Operator](#uninstalling)
 8. [Wrapup](#conclusion)
-<!--9. [References](#refs)-->
-
-The term *Project* and *namespace* maybe used interchangeably in this guide.
 
 
-## Fundamentals of Synchronization for 5G O-RAN <a name="background"></a>
+## Fundamentals of Synchronization for 5G Open Radio Access networks (O-RAN) <a name="background"></a>
 
 5G O-RAN leverages sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between various dissagregated elements of the 5G Radio Access Network (RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navigation Satellite Systems (GNSS) such as GPS. With a clear view of the sky, a GPS can receive signal from satellites. From these signals, it can get the sources of Frequency, Phase, and Time.
 
@@ -35,7 +23,7 @@ The term *Project* and *namespace* maybe used interchangeably in this guide.
 
 <figcaption class="figure-caption text-center">
 
-**Figure 1** PTP clocks with Master and Slave Ports
+**Figure 1** PTP clocks with Master and Slave Ports.
 
 </figcaption>
 
@@ -43,12 +31,12 @@ In 5G O-RAN, multiple distributed network elements require getting Frequency, Ti
 
 - The recipient of the GNSS information in a PTP network is referred to as the Telecom Grand Master (T-GM). The T-GM consumes the frequency, phase, and timing info from a Primary Reference Time Clock (PRTC) to calibrate its clock and distribute the frequency, phase, and time signal via PTP to its connected network elements lower in the synchronization hierarchy.
 
-- The Telecom Time Slave Clock (T-TSC) functionality terminates the PTP protocol and recovers the clock from one or more master clocks. An O-RRU contains the slave functionality and takes the time information from the slave for its usage.
+- The Telecom Time Slave Clock (T-TSC) functionality terminates the PTP protocol and recovers the clock from one or more master clocks. An Open Remote Radio Unit (O-RRU) contains the slave functionality and takes the time information from the slave for its usage.
 
 - The Telecom Boundary Clock (T-BC) combines both slave and master functions. At the slave side, it receives PTP packets from, e.g., one or more master clocks, terminates the PTP, and recovers clock from the best master clock, using best master clock algorithm (BMCA). At master side, new PTP sessions are created based on the timing information of the boundary clock. Information in PTP is passed to the next boundary or slave clock in the chain.
 
 
-T-BC, T-TSC, and T-GM functionality can be implemented using specific NICs with time synchronization support. [Silicom Timing Synchornization (STS) NICs][2] contain Intel E810 NIC controllers and phase-locked loop (PLL)-based, combined with an oscillator of high accuracy to comply with both PTP and SyncE, in order to target O-RAN synchronization requirements in 5G systems.
+T-BC, T-TSC, and T-GM functionality can be implemented using specific NICs with time synchronization support. [Silicom Timing Synchronization (STS) NICs][2] contain Intel E810 NIC controllers and phase-locked loop (PLL)-based, combined with an oscillator of high accuracy to comply with both PTP and SyncE, in order to target O-RAN synchronization requirements in 5G systems.
 
 ## Pre-requisites <a name="pre-requisites"></a>
 
@@ -64,7 +52,7 @@ Before we proceed to the installation ensure you have:
 
 <figcaption>
 
-**Figure 2** Silicom Timing Synchronization (STS) Card
+**Figure 2** Silicom Timing Synchronization (STS) Card.
 
 </figcaption>
 
@@ -74,16 +62,16 @@ Before we proceed to the installation ensure you have:
 
 - OCP cluster with version bigger or equal than 4.8.36 with at least 1 baremetal worker node with access to `quay.io`
 
-- Worker Node based on [SYS-210P][5] is used in this post, but other server platforms that meet the PCIe Gen4 slot and height requirements should work.
+- Worker Node based on [SYS-210P][4] is used in this post, but other server platforms that meet the PCIe Gen4 slot and height requirements should work.
   - Red Hat Enterprise Linux CoreOS
   - PCI-Express 4.0 x16 free slot in worker node
 
 - An image with lspci, ethtools, and lsusb utilities installed than can be provisioned in worker node
 
 
-## Installing Silicom Timesync Operator <a name="installation"></a>
+## Installing Silicom Timing Synchronization Operator <a name="installation"></a>
 
-There are two distinct entities in this solution: one is the Silicom TimeSync physical cards themselves, and the other is the TimeSync software stack. The Operator dramatically simplifies the deployment, configuration, and management of the Silicom TimeSync NICs and the TimeSync software.
+There are two distinct entities in this solution: one is the Silicom Timing Synchronization physical cards themselves, and the other is the Silicom Timing Synchronization software stack. The certified Operator dramatically simplifies the deployment, configuration, and management of the Silicom Timing Synchronization physical cards and the Timing Synchronization software.
 
 #### Install Silicom Card in Worker
 
@@ -95,7 +83,7 @@ There are two distinct entities in this solution: one is the Silicom TimeSync ph
 
 <figcaption>
 
-**Figure 3** SMA Connector for GPS input receiver in Silicom TimeSync (STS4) Card
+**Figure 3** SMA Connector for GPS input receiver in Silicom Timing Synchronization (STS4) Card
 
 </figcaption>
 
@@ -156,19 +144,12 @@ There are two distinct entities in this solution: one is the Silicom TimeSync ph
   $GNGSA,A,3,02,11,05,09,24,12,25,33,03,31,,,99.99,99.99,99.99,3*3E
   $GNGSA,A,3,,,,,,,,,,,,,99.99,99.99,99.99,4*34
   ```
-#### TimeSync Stack
+#### Silicom Timing Synchronization Stack
 
-Now that the card has been installed, we proceed to installing the the required Operators in our OpenShift cluster.  These pieces of software will be in charge of configuring the Synchronization aspects supported by the card.
+Now that the card has been installed, we proceed to installing the the required Operators in our OpenShift cluster.  These pieces of software will be in charge of configuring the Timing Synchronization aspects supported by the card.
 
 ### Install Operators from the embedded OperatorHub
 
-<!-- Install steps clearly defined on a FRESH CLUSTER with output-->
-<!--
-      - Supported: NFD + SRO MUST be installed in the same namespace as Silicom Operator. The namespace can be selected and by default `openshift-silicom` will be created.
-      - Unsupported: However we need the flexibility to select the namespace where the three operators will be located. Next version:
-          * NFD, SRO and Silicom can live in their own namespaces
-          * Silicom operand should live in a different namespace than silicom operator.
--->
 
 #### Create namespace
 We first create a namespace from the Web Console. Go to **Administration->Namespaces** and click
@@ -176,11 +157,6 @@ We first create a namespace from the Web Console. Go to **Administration->Namesp
 
   * select *No additional labels* in **Labels**
   * select *No restrictions* in **Default network policy**
-<!--
-However, note that to allow the installation in the selected namespace. NodeFeature Discovery operator should be preferably installed (before or after you install the Silicom STS operator) to automate the labelling of the nodes equipped with a Silicom Time Sync card. The current version requires NodeFeature Discovery to coexists in the same namespace as Silicom TimeSync operator.
-it is required that i) the operator must be a member of an operatorgroup that selects one namespace (ownNamespace or singlenamespace).
-      - Operator is considered to be a member of an operatorgroup if 1) CSV of the operator is installed in the same namespace as the operator group, 2) install mode in CSV support the namespaces targetted by the [operator group][1]
--->
 
 ![namespace](imgs/00_namespace.png)
 
@@ -207,7 +183,7 @@ We proceed to install the Node Feature Discovery Operator in the `silicom` names
 </figcaption>
 
 #### Install Silicom Timing Synchronization Operator
-By means of the OpenShift Web Console, let's install the Silicom Timing Synchronization operator in the `silicom` namespace:
+By means of the OpenShift Web Console, let's install the Silicom Timing Synchronization Operator in the `silicom` namespace:
 
   * select *alpha* as **Update channel**
   * select *A specific namespace on the cluster* as **Installation mode**
@@ -216,20 +192,13 @@ By means of the OpenShift Web Console, let's install the Silicom Timing Synchron
 
 ![operatortsync](imgs/01_install.png)
 
-<!--
-* The only installation mode supported from the operatorhub is `for all namespaces in the cluster`: operator will be available in all Namespaces. This means that the namespaces this operator can watch are ALL.
-The operator gets installed in namespace `openshift-silicom` by default or in the namespace specified by the OCP administrator.
--->
-
-<!--![installed](imgs/02_install.png)-->
-
 <figcaption>
 
 **Figure 5** Install Silicom Timing Synchronization Operator
 
 </figcaption>
 
-Once the operator is installed with the Custom Resource Definition (CRD)s exposed in the figure above, we proceed to instantiate the CRs. When you install an Operator you are not installing the services managed by that operator.
+Once the Operator is installed with the Custom Resource Definition (CRD)s exposed in the figure above, we proceed to instantiate the Custom Resources (CRs). When you install an Operator you are not installing the software services managed by that Operator.
 
 #### Install StsOperatorConfig CR
 Create the StsOperatorConfig CR object to set the desired timing stack configuration. Launch the following:
@@ -253,7 +222,7 @@ spec:
     build: false
 EOF
 ```  
-This will trigger the Operator to instantiate of a Node Feature Discovery (NFD) CR, which will detect worker nodes physically equipped with an Silicom Time Sync card. This CR is consumed by the [`Node Feature Discovery Operator`][3]. Note that Silicom Timing Synchronization Operator requires the presence [`NFD Operator`][3] in the same namespace. In this case, we have one node with an STS4 card, thus the node should have been automatically labeled by NFD with with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. To check that, issue the following:
+This will trigger the Operator to instantiate of a Node Feature Discovery (NFD) Custom Resource (CR), which will detect worker nodes physically equipped with an Silicom Timing Sync card. This CR is consumed by the [`NFD Operator`][3]. Note that Silicom Timing Synchronization Operator requires the presence [`NFD Operator`][3] in the same namespace. In this case, we have one node with an STS4 card, thus the node should have been automatically labeled by NFD with with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. To check that, issue the following:
 
 ```console
 # oc describe node du3-ldc1 | grep custom-silicom.sts.devices=true
@@ -265,18 +234,14 @@ Lastly, the Silicom Timing Synchronization Operator creates a daemonset called `
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
 
 
-<!-- Show the user how to place the card in T-GM mode Supported: Currently, the administrator must manually set labels in the nodes to identify what worker nodes inside the OCP cluster can get the T-TGM.8275.1 role.
-* Not supported: automated discovery of nodes that are directly connected to the GPS signal to add the proper label.
--->
-
-## Label Node
+### Label Node
 Add a node label `gm-1` in the worker node that has GPS cable connected to the (i.e., in our case worker node named `du3-ldc1`).
 
 ```console
 oc label node du3-ldc1 sts.silicom.com/config="gm-1"
 ```
 
-## Instantiate StsConfig CR
+### Instantiate StsConfig CR
 Create a StsConfig CR object to provision the desired Telecom PTP profile (i.e., T-GM.8275.1).
 
 
@@ -312,7 +277,7 @@ spec:
 EOF                 
 ```
 
-* For a full listing of the possible TimeSync configuration parameters and their possible values:
+* For a full listing of the possible Silicom Timing Synchronization configuration parameters and their possible values:
 
 ``` console
 # oc explain StsConfig.spec
@@ -340,13 +305,13 @@ sts-controller-manager-6b75cc8b45-mrd5c   2/2     Running   0          3m6s
 sts-plugin-lpxlh                          1/1     Running   0          2m40s
 ```
 
-The pods above represent the timing solution for T-GM of a node labeled `gm-1`. The diagram below illustrates the resulting TimingSync deployment on the OpenShift worker node.
+The pods above represent the timing solution for T-GM of a node labeled `gm-1`. The diagram below illustrates the resulting Silicom Timing Synchronization stack deployment in the OpenShift worker node equipped with a Silicom STS4 card.
 
 ![Timing Stack](imgs/tgm.png)
 
 <figcaption>
 
-**Figure 6** Deployment of a T-GM
+**Figure 6** Deployment of a T-GM in the OpenShift worker node.
 
 </figcaption>
 
@@ -426,16 +391,16 @@ GNSS Height:    143.924000
 ```
 
 
-## Uninstalling the Silicom Timesync Operator from the embedded OperatorHub <a name="uninstalling"></a>
+## Uninstalling the Silicom Timing Synchronization Operator from the embedded OperatorHub <a name="uninstalling"></a>
 
 <!-- Uninstall steps clearly defined on a FRESH CLUSTER with output-->
-Uninstalling the operator can be done from the OperatorHub console in your OpenShift cluster.
+Uninstalling the Operator can be done from the OperatorHub console in your OpenShift cluster.
 
 ![installed](imgs/03_uninstall.png)
 
 <figcaption>
 
-**Figure 7** Uninstall operator
+**Figure 7** Uninstall Silicom Timing Synchronization Operator 
 
 </figcaption>
 
@@ -453,31 +418,25 @@ gpsStatus:
   status: Normal Status
 ```
 
-Note that although the Operator is no longer installed, the time synchronization service is still detecting a GPS device, and the node is acting as master node. This is of special interest since time synchronization is critical in 5G deployments.  To remove these:
+Note that although the Operator is no longer installed, the time synchronization service is still detecting a GPS device, and the node is acting as master node. This is common amongst Operators in general to prevent a data loss situation or outages in case the operator is uninstalled unintentionally. This policy is of special in our case since time synchronization is a critical service to kepp in 5G deployments. To fully uninstall the Silicom Timing Synchronization stack, it is needed to:
 
-* Delete the pods associated to the Time Sync service:
+* Delete the pods associated to the Silicom Timing Synchronization stack.
 ```console
-oc delete stsconfig gm-1
+$ oc delete stsconfig gm-1
 ```
-* Delete the CR that maintains stsplugin Daemonset:
-
-```console
-oc delete stsoperatorconfig sts-operator-config
-```
-* Delete the CR that maintains the nodes with a Silicom Time Sync card.
+* Delete the CR that maintains stsplugin Daemonset.
 
 ```console
-oc delete stsnode du3-ldc1
+$ oc delete stsoperatorconfig sts-operator-config
 ```
+* Delete the CR that maintains the nodes with a Silicom Timing Synchronization card.
 
-<!--### Uninstall from the CLI Omit this part for the blogpost
-* Deleting the subscription and the csv does not delete nfd daemonset or the specialresource daemonsets or the silicom sts-plugin daemonset will not delete the CRs associated to the operator
-
-* If we want to fully delete the set of elements created by the operator we need to delete the stsoperatorconfig CR. The action below will delete the stsoperatorconfig daemonset (i.e., the sts-plugin) and the nfd and sro deploment (if used).
--->      
+```console
+$ oc delete stsnode du3-ldc1
+```
 
 ## Wrap-up <a name="conclusion"></a>
-This post provided a detailed walk through of the installation, operation and un-installation of the new certified Silicom Time Sync Operator for 5G synchronization in O-RAN deployments. By taking care of low-level hardware, this Operator does a really good job of abstracting details of managing both the Hardware NIC embedded accurate HW clock and Software Synchronization stack, so that the OpenShift Container Platform administrator does not have to be an expert in 5G synchronization and O-RAN. In future posts, we will focus on more complex and dynamic synchronization topology setups, including boundary clocks and slave clocks. The Silicom Timing Synchronization Operator can be used to configure the synchronization topology either during initialization time, or runtime to operate as T-BC or T-TSC (more information on those modes will be included in following posts).
+This post provided a detailed walk through of the installation, operation and un-installation of the new certified Silicom Timing Synchronization Operator for 5G synchronization in O-RAN deployments. By taking care of low-level hardware, this Operator does a really good job of abstracting details of managing both the Hardware NIC embedded accurate Hardware clock and Software Synchronization stack, so that the OpenShift Container Platform administrator does not have to be an expert in 5G synchronization and O-RAN. In future posts, we will focus on more complex and dynamic synchronization topology setups, including boundary clocks and slave clocks. The Silicom Timing Synchronization Operator can be used to configure the Timing Synchronization topology either during initialization time, or runtime to operate as T-BC or T-TSC (more information on those modes will be included in following posts).
 <!--
 ## References <a name="refs"></a>
 -->
@@ -485,3 +444,4 @@ This post provided a detailed walk through of the installation, operation and un
 [2]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/
 [3]: https://docs.openshift.com/container-platform/4.9/hardware_enablement/psap-node-feature-discovery-operator.html
 [4]: https://smicro.eu/supermicro-sys-210p-frdn6t-1
+[5]: https://catalog.redhat.com/software/operators/detail/622b5609f8469c36ac475619
