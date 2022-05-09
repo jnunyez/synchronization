@@ -1,6 +1,6 @@
-# Silicom TimeSync Operator on OpenShift
+# Silicom Timing Synchronization (STS) Operator on OpenShift
 
-Are you working with baremetal clusters and looking for a timing and synchronization solution for your containerized workloads?  The Silicom Timing Synchronization (STS) Operator was just released as a [Certified Operator on OpenShift][5]
+Are you working with baremetal clusters and looking for a timing and synchronization solution for your containerized workloads?  The Silicom Timing Synchronization (STS) Operator was just released as a [Certified Operator on OpenShift][5].
 
 Synchronization and precise timing via Global Positioning Systems (GPS) is of paramount importance for 5G O-RAN (Open Radio Access Networks).  In this blog, we are going to show how easy it is to install the STS Operator on Red Hat OpenShift Container Platform, and use it to configure specialized NIC adapters from Silicom in our OpenShift environment. Towards the end of the installation, we will monitor the time synchronization functionality on a Telecom Grand Master (T-GM) node.
 
@@ -23,7 +23,7 @@ Synchronization and precise timing via Global Positioning Systems (GPS) is of pa
 
 <figcaption class="figure-caption text-center">
 
-**Figure 1** PTP clocks with Master and Slave Ports.
+**Figure 1** Precision Time Protocol clocks with Master and Slave Ports.
 
 </figcaption>
 
@@ -33,20 +33,21 @@ In 5G O-RAN, multiple distributed network elements require getting Frequency, Ti
 
 - The Telecom Time Slave Clock (T-TSC) functionality terminates the PTP protocol and recovers the clock from one or more master clocks. An Open Remote Radio Unit (O-RRU) contains the slave functionality and takes the time information from the slave for its usage.
 
-- The Telecom Boundary Clock (T-BC) combines both slave and master functions. At the slave side, it receives PTP packets from, e.g., one or more master clocks, terminates the PTP, and recovers clock from the best master clock, using best master clock algorithm (BMCA). At master side, new PTP sessions are created based on the timing information of the boundary clock. Information in PTP is passed to the next boundary or slave clock in the chain.
+- The Telecom Boundary Clock (T-BC) combines both slave and master functions. At the slave side, it receives PTP packets from, e.g., one or more master clocks, terminates the PTP, and recovers clock from the best master clock, using Best Master Clock Algorithm (BMCA). At master side, new PTP sessions are created based on the timing information of the boundary clock. Information in PTP is passed to the next boundary or slave clock in the chain.
 
-
-T-BC, T-TSC, and T-GM functionality can be implemented using specific NICs with time synchronization support. [Silicom Timing Synchronization (STS) NICs][2] contain Intel E810 NIC controllers and phase-locked loop (PLL)-based, combined with an oscillator of high accuracy to comply with both PTP and SyncE, in order to target O-RAN synchronization requirements in 5G systems.
+T-BC, T-TSC, and T-GM functionality can be implemented using specific NICs with time synchronization support. [Silicom Timing Synchronization (STS) NICs][2] contain Intel E810 NIC controllers and phase-locked loop (PLL)-based clocks, combined with an oscillator of high accuracy to comply with both PTP and SyncE to target O-RAN synchronization requirements in 5G systems.
 
 ## Pre-requisites <a name="pre-requisites"></a>
 
-Before we proceed to the installation ensure you have:
+Before we proceed to the installation of the Silicom Timing Synchronization Operator ensure you have:
+
+- OpenShift cluster with version bigger or equal than 4.8.29 (i.e., the one used in this post) with at least 1 baremetal worker node.
 
 - Terminal environment
   - Your terminal has the following commands:
     - [oc](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc) binary.
 
-- Physical Silicom Timing Synchronization (STS) card. In particular an [STS4](https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/#:~:text=Silicom's%20STS4%20TimeSync%20card%20capable,in%20Master%20and%20Slave%20mode.) or [STS2](https://www.silicom-usa.com/pr/server-adapters/networking-adapters/10-gigabit-ethernet-networking-adapters/p410g8ts81-timesync-server-adapter/) card physically installed in one of your servers.
+- One Silicom Timing Synchronization (STS) physical card. In particular, either an [STS4](https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/#:~:text=Silicom's%20STS4%20TimeSync%20card%20capable,in%20Master%20and%20Slave%20mode.), or an [STS2](https://www.silicom-usa.com/pr/server-adapters/networking-adapters/10-gigabit-ethernet-networking-adapters/p410g8ts81-timesync-server-adapter/) card physically installed in one of your baremetal worker nodes.
 
 ![Silicom Card](imgs/01_card.png)
 
@@ -58,46 +59,42 @@ Before we proceed to the installation ensure you have:
 
 - A GPS antenna with clear sight of the sky connected to the GNSS receiver of the STS card.
 
-- [Authenticate as Cluster Admin inside your environment](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands) in an OCP Cluster.
-
-- OCP cluster with version bigger or equal than 4.8.36 with at least 1 baremetal worker node with access to `quay.io`
+- [Authenticate as Cluster Admin inside your environment](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands) in the OpenShift Cluster.
 
 - Worker Node based on [SYS-210P][4] is used in this post, but other server platforms that meet the PCIe Gen4 slot and height requirements should work.
-  - Red Hat Enterprise Linux CoreOS
-  - PCI-Express 4.0 x16 free slot in worker node
+  - Red Hat Enterprise Linux CoreOS.
+  - PCI-Express 4.0 x16 free slot in worker node.
 
-- An image with lspci, ethtools, and lsusb utilities installed than can be provisioned in worker node
+- A container image with the following utilities installed: lspci, ethtools, and lsusb. This image will be used in the worker node equipped with STS card.
 
 
-## Installing Silicom Timing Synchronization Operator <a name="installation"></a>
+## Install Silicom Timing Synchronization Operator <a name="installation"></a>
 
-There are two distinct entities in this solution: one is the Silicom Timing Synchronization physical cards themselves, and the other is the Silicom Timing Synchronization software stack. The certified Operator dramatically simplifies the deployment, configuration, and management of the Silicom Timing Synchronization physical cards and the Timing Synchronization software.
+There are two distinct type of entities the operator handles: one is the Silicom Timing Synchronization physical cards themselves, and the other is the Silicom Timing Synchronization software stack. The certified Operator dramatically simplifies the deployment, configuration, and management of the Silicom Timing Synchronization physical cards and the Timing Synchronization software.
 
-#### Install Silicom Card in Worker
+#### Install Silicom Timing Synchronization (STS) Card in Worker
 
-- Install the card in a PCI-Express 4.0 x16 slot inside a worker node
-
-- Connect GPS Antenna to the GPS Input of the STS4 card
+1. Install the card in a PCI-Express 4.0 x16 slot inside a worker node.
+2. Connect USB cable from uUSB in card to USB port in worker node and switch-on the worker node.
+3. Connect GPS Antenna to the GPS Input of the STS4 card.
 
 ![Silicom Card](imgs/00_card.png)
 
 <figcaption>
 
-**Figure 3** SMA Connector for GPS input receiver in Silicom Timing Synchronization (STS4) Card
+**Figure 3** SMA Connector for GPS input receiver in Silicom Timing Synchronization (STS4) Card.
 
 </figcaption>
 
 
-- Connect USB cable from uUSB in card to USB port in worker node and switch-on the worker node
-
-- Launch debug pod in worker node equipped with STS4 card. To overcome package limitations from UBI8, we use a Fedora 36 image so that we can install both `usbutils` and `pciutils`:
+4. Launch debug pod in worker node equipped with STS4 card. To overcome package limitations from UBI8, we use a Fedora 36 image so that we can install both `usbutils` and `pciutils`:
 
   ```console
   oc debug node/du3-ldc1 --image=quay.io/fedora/fedora:36-x86_64
   sh-5.1# dnf -y install ethtool usbutils pciutils
   ```
 
-- Two USB lines must be detected, the U-Blox GNSS receiver (Vendor IDs 1546) and the Silicom propietary USB (Vendor ID 1373):
+5. Two USB lines must be detected, the U-Blox GNSS receiver (Vendor IDs 1546) and the Silicom propietary USB (Vendor ID 1373):
 
   ```console
    # lsusb -d 1546:
@@ -106,7 +103,7 @@ There are two distinct entities in this solution: one is the Silicom Timing Sync
    Bus 004 Device 003: ID 1374:0001 Silicom Ltd. Tsync USB Device
   ```
 
-- View that the Silicom STS4 based on Intel E810 has been detected:
+View that the Silicom STS4 based on Intel E810 has been detected:
 
   ```console
    # lspci -d 8086: | grep E810
@@ -124,7 +121,7 @@ There are two distinct entities in this solution: one is the Silicom Timing Sync
    53:00.3 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
   ```
 
-- The firmware in the card must be greater or equal than 3.1, check the firmware version of the card by getting the interface name:
+The firmware in the card must be greater or equal than 3.10, check the firmware version of the card by getting the NIC name (in this case `enp81s0f2`). The interface name can be obtained from the PCI number (in our case `51:00` is the PCI):
 
   ```console
   # ls  /sys/bus/pci/devices/0000\:51\:00.2/net
@@ -132,7 +129,7 @@ There are two distinct entities in this solution: one is the Silicom Timing Sync
   # ethtool -i enp81s0f2 | grep firmware
   firmware-version: 3.10 0x8000d86d 1.3106.0
   ```
-- Assure that the GPS input is getting GPS data:
+Assure that the GPS input is getting GPS data:
 
   ```console
   # stty -F /dev/ttyACM0 raw
@@ -146,10 +143,9 @@ There are two distinct entities in this solution: one is the Silicom Timing Sync
   ```
 #### Silicom Timing Synchronization Stack
 
-Now that the card has been installed, we proceed to installing the the required Operators in our OpenShift cluster.  These pieces of software will be in charge of configuring the Timing Synchronization aspects supported by the card.
+Now that the card has been installed, we proceed to installing the required Operators in our OpenShift cluster. These pieces of software will be in charge of configuring the Timing Synchronization aspects supported by the card.
 
 ### Install Operators from the embedded OperatorHub
-
 
 #### Create namespace
 We first create a namespace from the Web Console. Go to **Administration->Namespaces** and click
@@ -162,7 +158,7 @@ We first create a namespace from the Web Console. Go to **Administration->Namesp
 
 <figcaption>
 
-**Figure 3** Select Namespace
+**Figure 3** Create Namespace where Silicom Timing Synchronization Operator will be located.
 
 </figcaption>
 
@@ -342,14 +338,14 @@ Tsynctl gRPC Client v1.0.9
 $
 ```
 
-2. Check the status of the GM clock in the Silicom network card.  
+2. Check the status of the GM clock in the Silicom network card: 
 
 ```console
 $ get_clk_class
 Clock Class: 6, LOCKED
 ```
 
-3. If we want to gather more timing information status related to the clock, PTP, SyncE, and GNSS Data:
+3. If we want to gather more timing information status, we authenticate via `register` to start consuming the gRPC timing-related services:
 
 ```console
 $ register 1 2 3 4 5
@@ -393,7 +389,6 @@ GNSS Height:    143.924000
 
 ## Uninstalling the Silicom Timing Synchronization Operator from the embedded OperatorHub <a name="uninstalling"></a>
 
-<!-- Uninstall steps clearly defined on a FRESH CLUSTER with output-->
 Uninstalling the Operator can be done from the OperatorHub console in your OpenShift cluster.
 
 ![installed](imgs/03_uninstall.png)
@@ -404,7 +399,7 @@ Uninstalling the Operator can be done from the OperatorHub console in your OpenS
 
 </figcaption>
 
-You will see how the time synchronization service is still active because CRs we previously provisioned and the physical card are still present. The CRDs instances  `StsNodes`, `StsOperatorConfig`, and `StsConfig` keep the created GM role active.
+You will see how the time synchronization service is still active because CRs we previously provisioned and the physical card are still present. The CRDs `StsNodes`, `StsOperatorConfig`, and `StsConfig` keep the created GM role active.
 
 ```console
 $ oc get stsnodes du3-ldc1
@@ -421,6 +416,7 @@ gpsStatus:
 Note that although the Operator is no longer installed, the time synchronization service is still detecting a GPS device, and the node is acting as master node. This is common amongst Operators in general to prevent a data loss situation or outages in case the operator is uninstalled unintentionally. This policy is of special in our case since time synchronization is a critical service to kepp in 5G deployments. To fully uninstall the Silicom Timing Synchronization stack, it is needed to:
 
 * Delete the pods associated to the Silicom Timing Synchronization stack.
+
 ```console
 $ oc delete stsconfig gm-1
 ```
