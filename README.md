@@ -229,7 +229,6 @@ Lastly, the Silicom Timing Synchronization Operator creates a daemonset called `
 
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
 
-
 ### Label Node
 Add a node label `gm-1` in the worker node that has GPS cable connected to the (i.e., in our case worker node named `du3-ldc1`).
 
@@ -311,11 +310,11 @@ The pods above represent the timing solution for T-GM of a node labeled `gm-1`. 
 
 </figcaption>
 
-In summary, the STSConfig CR instance triggers the creation of the following pods via the Silicom controller pod:
+As showed in the Figure above the STSConfig CR instance triggers the creation of the following pods via the Silicom controller pod:
 
-- `gpsd pod` that reads and distributes the timing information gathered from the GPS receiver. It embeds also a container that aligns the Silicom Hardware clock to the external timing information gathered from the GPS.
-- `tsync pod` in charge of aligning the Hardware clock of the Silicom card to the timing information received from `gpsd` container and distribute this information to other pods (e.g., a DU in the same node) or to other nodes lower in the synchronization hierarchy
-- `phc2sys pod` that aligns the system clock to the Silicom Hardware clock.
+- `gpsd+sync_extts pod` that reads and distributes the timing information gathered from the GPS receiver. It also embeds a container that aligns the Silicom Hardware clock to the external timing information gathered from the GPS.
+- `tsync pod` in charge of aligning the Hardware clock of the Silicom Timing Synchronization card to the timing information received from `gpsd` container and distribute this information to other workloads (e.g., a O-DU workload in the same node) or to other nodes lower in the synchronization hierarchy
+- `phc2sys pod` that aligns the system clock to the Silicom Timing Synchronization Hardware clock.
 
 <!--
 mode: Telecom PTP profiles as defined by the ITU-T. T-GM.8275.1 PTP profile corresponds to the profile for the RAN fronthaul network.
@@ -337,15 +336,42 @@ oc exec -it gm-1-du3-ldc1-tsync-pkxwv -c du3-ldc1-grpc-tsyncd -- tsynctl_grpc
 Tsynctl gRPC Client v1.0.9
 $
 ```
+2. For additional info type `help` at the `tsynctl_grpc` prompt:
 
-2. Check the status of the GM clock in the Silicom network card: 
+```console
+$ help
+.
+.
+
+Timing Info:
+============
+register    [params] - Registration for Timing Commands
+
+deregister    [params] - Deregistration for Timing Commands
+
+get_timing_status [params] - Get Timing status (requires registration)
+
+get_timing_stats  [params] - Get Timing statistics (requires registration)
+
+    Timing Parameters List (all mandatory):
+    =======================================
+    Micro Service ID
+    Micro Service Instance
+    Application ID
+    vDU baseband ID
+    Remote Application ID
+.
+.
+```
+
+3. Check the status of the GM clock in the Silicom network card: 
 
 ```console
 $ get_clk_class
 Clock Class: 6, LOCKED
 ```
 
-3. If we want to gather more timing information status, we authenticate via `register` to start consuming the gRPC timing-related services:
+4. If we want to gather more timing information status, we authenticate via `register` to start consuming the gRPC timing-related services:
 
 ```console
 $ register 1 2 3 4 5
@@ -385,7 +411,6 @@ GNSS Latitude:    32.943067
 GNSS Longitude:   -96.994507
 GNSS Height:    143.924000
 ```
-
 
 ## Uninstalling the Silicom Timing Synchronization Operator from the embedded OperatorHub <a name="uninstalling"></a>
 
