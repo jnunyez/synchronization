@@ -453,6 +453,14 @@ $ oc delete stsnode du3-ldc1
 ## Wrap-up <a name="conclusion"></a>
 This post provided a detailed walk through of the installation, operation and un-installation of the recently released [certified Silicom Timing Synchronization Operator][5] for 5G synchronization in O-RAN deployments. By taking care of low-level hardware, this Operator does a really good job of abstracting details of managing both the Hardware NIC embedded accurate Hardware clock and Software Synchronization stack, so that the OpenShift Container Platform administrator does not have to be an expert in 5G synchronization and O-RAN. In future posts, we will focus on more complex and dynamic synchronization topology setups, including boundary clocks and slave clocks. The Silicom Timing Synchronization Operator can be used to self-manage more complex Timing Synchronization topologies including T-GM,T-BC, and T-TSC (more information on those modes will be included in following posts).
 
+## Acknowledgements
+
+Special thanks for their constructive insights to:
+- Dave Cain, Senior Principal Software Engineer, Red Hat.
+- Ryan Raasch, Senior Software Engineer, Silicom.
+- Eyal Cohen, Director of Business Development, Silicom.
+
+
 [1]: https://docs.openshift.com/container-platform/4.8/operators/understanding/olm/olm-understanding-operatorgroups.html#olm-operatorgroups-target-namespace_olm-understanding-operatorgroups
 [2]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/
 [3]: https://docs.openshift.com/container-platform/4.9/hardware_enablement/psap-node-feature-discovery-operator.html
