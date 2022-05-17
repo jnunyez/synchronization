@@ -156,7 +156,7 @@ We first create a namespace from the Web Console. Go to **Administration->Namesp
 
 <figcaption>
 
-**Figure 3** Create Namespace where Silicom Timing Synchronization Operator will be located.
+**Figure 4** Create Namespace where Silicom Timing Synchronization Operator will be located.
 
 </figcaption>
 
@@ -172,7 +172,7 @@ We proceed to install the Node Feature Discovery Operator in the `silicom` names
 
 <figcaption>
 
-**Figure 4** Install Node Feature Discovery (NFD) Operator.
+**Figure 5** Install Node Feature Discovery (NFD) Operator.
 
 </figcaption>
 
@@ -188,7 +188,7 @@ By means of the OpenShift Web Console, let's install the Silicom Timing Synchron
 
 <figcaption>
 
-**Figure 5** Install Silicom Timing Synchronization (STS) Operator.
+**Figure 6** Install Silicom Timing Synchronization (STS) Operator.
 
 </figcaption>
 
@@ -308,7 +308,7 @@ The pods above represent the timing solution for T-GM of a node labeled `gm-1`. 
 
 <figcaption>
 
-**Figure 6** Deployment of a T-GM in the OpenShift worker node.
+**Figure 7** Deployment of a T-GM in the OpenShift worker node.
 
 </figcaption>
 
@@ -414,7 +414,7 @@ Uninstalling the Operator can be done from the OperatorHub console in your OpenS
 
 <figcaption>
 
-**Figure 7** Uninstall Silicom Timing Synchronization Operator. 
+**Figure 8** Uninstall Silicom Timing Synchronization Operator. 
 
 </figcaption>
 
