@@ -1,8 +1,8 @@
 # Silicom Timing Synchronization (STS) Operator on OpenShift
 
-Are you working with baremetal clusters and looking for a timing and synchronization solution for your containerized workloads?  The Silicom Timing Synchronization (STS) Operator was just released as a [Certified Operator on OpenShift][5].
+Are you working with baremetal clusters and looking for a timing and synchronization solution for your containerized workloads? The Silicom Timing Synchronization (STS) Operator was just released as a [Certified Operator on OpenShift][5].
 
-Synchronization and precise timing via Global Positioning Systems (GPS) is of paramount importance for 5G O-RAN (Open Radio Access Networks). In this blog, we are going to show how easy it is to install the STS Operator on Red Hat OpenShift Container Platform, and use it to configure specialized Columbiaville NIC adapters from Silicom in OpenShift Container Platform. Besides, we are going to show how to configure the time synchronization functionality on a Telecom Grand Master (T-GM) node.
+Synchronization and precise timing via Global Positioning Systems (GPS) is of paramount importance for 5G [Open Radio Access Networks (O-RAN)][6]. This blog shows how easy it is to install the STS Operator on Red Hat OpenShift Container Platform, and use it to configure specialized Columbiaville NIC adapters from Silicom in OpenShift Container Platform. Besides, we are going to show how to configure the time synchronization functionality on a Telecom Grand Master (T-GM) node.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ Synchronization and precise timing via Global Positioning Systems (GPS) is of pa
 
 ## Fundamentals of Synchronization for 5G Open Radio Access networks (O-RAN) <a name="background"></a>
 
-5G O-RAN leverages sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between various elements of the 5G Open Radio Access Network (O-RAN). Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navigation Satellite Systems (GNSS) such as GPS. With a clear view of the sky, a GPS can receive signal from satellites. From these signals, it can get the sources of Frequency, Phase, and Time.
+5G O-RAN leverages sophisticated technologies to maximize achieved data rates. These techniques rely on tight synchronization between various elements of the 5G [Open Radio Access Network (O-RAN)][6]. Not getting timing right means mobile subscribers are likely to suffer a poor user experience. Typically, this requires receivers of a Global Navigation Satellite Systems (GNSS) such as GPS. With a clear view of the sky, a GPS can receive signal from GNSS systems. From these signals, it can get the sources of frequency, phase, and time.
 
 ![Sync Background](imgs/back.png)
 
@@ -27,11 +27,11 @@ Synchronization and precise timing via Global Positioning Systems (GPS) is of pa
 
 </figcaption>
 
-In 5G O-RAN, multiple distributed network elements require getting Frequency, Time and Phase information. In a packet-based network, Precision Time Protocol (PTP), along with Synchronous Ethernet (SyncE), are prominently the dedicated protocols to carry such information required for achieving synchronization. The synchronization solution consists of the following elements:
+In 5G O-RAN, multiple distributed network elements require getting frequency, time, and phase information. In a packet-based network, Precision Time Protocol (PTP), along with Synchronous Ethernet (SyncE), are prominently the dedicated protocols to carry such information required for achieving synchronization. The synchronization solution consists of the following elements:
 
 - The recipient of the GNSS information in a PTP network is referred to as the Telecom Grand Master (T-GM). The T-GM consumes the frequency, phase, and timing info from a Primary Reference Time Clock (PRTC) to calibrate its clock and distribute the frequency, phase, and time signal via PTP to its connected network elements lower in the synchronization hierarchy.
 
-- The Telecom Time Slave Clock (T-TSC) functionality terminates the PTP protocol and recovers the clock from one or more master clocks. An Open Remote Radio Unit (O-RRU) contains the slave functionality and takes the time information from the slave for its usage.
+- The Telecom Time Slave Clock (T-TSC) functionality terminates the PTP protocol and recovers the clock from one or more master clocks. For instance, in O-RAN an Open Remote Radio Unit (O-RRU) contains the slave functionality for its usage.
 
 - The Telecom Boundary Clock (T-BC) combines both slave and master functions. At the slave side, it receives PTP packets from, e.g., one or more master clocks, terminates the PTP, and recovers clock from the best master clock, using Best Master Clock Algorithm (BMCA). At master side, new PTP sessions are created based on the timing information of the boundary clock. Information in PTP is passed to the next boundary or slave clock in the chain.
 
@@ -41,11 +41,11 @@ T-BC, T-TSC, and T-GM functionality can be implemented using specific NICs with 
 
 Before we proceed to the installation of the Silicom Timing Synchronization Operator ensure you have:
 
-- OpenShift cluster with version bigger or equal than 4.8.29 (i.e., the one used in this post) with at least 1 baremetal worker node.
+- [OpenShift Container Platform 4.8][7]. In particular, we used OpenShift 4.8.29 with at least 1 baremetal worker node.
 
-- Terminal environment with [oc](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc) binary.
+- Terminal environment with [oc][8] binary installed.
 
-- One Silicom Timing Synchronization (STS) physical card. In particular, either an [STS4](https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/#:~:text=Silicom's%20STS4%20TimeSync%20card%20capable,in%20Master%20and%20Slave%20mode.), or an [STS2](https://www.silicom-usa.com/pr/server-adapters/networking-adapters/10-gigabit-ethernet-networking-adapters/p410g8ts81-timesync-server-adapter/) card physically installed in one of your baremetal worker nodes.
+- A [certified Silicom Timing Synchronization (STS) physical card][9]. In particular, either an [STS4][10], or an [STS2][11] card physically installed in one of your baremetal worker nodes.  
 
 ![Silicom Card](imgs/01_card.png)
 
@@ -57,13 +57,13 @@ Before we proceed to the installation of the Silicom Timing Synchronization Oper
 
 - A GPS antenna with clear sight of the sky connected to the GNSS receiver of the STS card.
 
-- [Authenticate as Cluster Admin inside your environment](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands) in the OpenShift Cluster.
+- [Authenticate as Cluster Admin inside your environment][12] in the OpenShift Cluster.
 
 - Worker Node based on [SYS-210P][4] is used in this post, but other server platforms that meet the PCIe Gen4 slot and height requirements should work.
   - Red Hat Enterprise Linux CoreOS.
   - PCI-Express 4.0 x16 free slot in worker node.
 
-- A container image with the following utilities installed: lspci, ethtools, and lsusb. This image will be used in the worker node equipped with STS card.
+- A container image with the following utilities installed: `lspci`, `ethtools`, and `lsusb`. This image will be used in the worker node equipped with STS card.
 
 
 ## Install Silicom Timing Synchronization Operator <a name="installation"></a>
@@ -163,7 +163,7 @@ We first create a namespace from the Web Console. Go to **Administration->Namesp
 #### Install Node Feature Discovery Operator
 We proceed to install the Node Feature Discovery Operator in the `silicom` namespace:
 
-  * select *alpha* as **Update channel**
+  * select *stable* as **Update channel**
   * select *A specific namespace on the cluster* as **Installation mode**
   * select *silicom* namespace as **Installed Namespace**  
   * select *Automatic* as **Update approval**
@@ -466,3 +466,10 @@ Special thanks for their constructive insights to:
 [3]: https://docs.openshift.com/container-platform/4.9/hardware_enablement/psap-node-feature-discovery-operator.html
 [4]: https://smicro.eu/supermicro-sys-210p-frdn6t-1
 [5]: https://catalog.redhat.com/software/operators/detail/622b5609f8469c36ac475619
+[6]: https://www.o-ran.org/
+[7]: https://docs.openshift.com/container-platform/4.8/welcome/index.html
+[8]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc
+[9]: https://catalog.redhat.com/hardware/search?p=1&c_catalog_channel=Component&q=silicom
+[10]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/#:~:text=Silicom's%20STS4%20TimeSync%20card%20capable,in%20Master%20and%20Slave%20mode
+[11]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/10-gigabit-ethernet-networking-adapters/p410g8ts81-timesync-server-adapter/
+[12]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands
