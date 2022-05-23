@@ -318,10 +318,9 @@ As showed in the Figure above the STSConfig CR instance triggers the creation of
 
 - `grpc_tsync`: exposes the timing synchronization API to get various type of synchronization-related info, subscribe to receiving notification events, and even allowing the configuration of timing parameters.
 
-- `gpsd`: reads and distributes the timing/phase information gathered from the GPS receiver.
+- `gpsd`: reads and distributes the timing/phase information gathered from the GNSS receiver.
 
-- `tsync_extts`, aligns the PTP Hardware clock to the external timing information gathered from the GPS receiver.
-
+- `tsync_extts`, aligns the PTP Hardware clock to the external timing information gathered from the GNSS receiver.
 
 - `phc2sys` that aligns the worker node system clock to the PTP Hardware clock embedded in the STS card.
 
@@ -337,6 +336,14 @@ oc exec -it gm-1-du3-ldc1-tsync-pkxwv -c du3-ldc1-grpc-tsyncd -- tsynctl_grpc
 Tsynctl gRPC Client v1.0.9
 $
 ```
+
+2. You can now check the status of the GM clock in the Silicom network card. `LOCKED` state means that the PTP HW clock in the STS card is aligned to the received timing/phase information from the GNSS receiver: 
+
+```console
+$ get_clk_class
+Clock Class: 6, LOCKED
+```
+
 2. For additional info type `help` at the `tsynctl_grpc` prompt:
 
 ```console
@@ -365,14 +372,8 @@ get_timing_stats  [params] - Get Timing statistics (requires registration)
 .
 ```
 
-3. Check the status of the GM clock in the Silicom network card: 
 
-```console
-$ get_clk_class
-Clock Class: 6, LOCKED
-```
-
-4. If we want to gather more detailed timing information status and PTP,SyncE stats, we can authenticate via `register` to start consuming the gRPC timing-related services:
+4. You can gather more detailed timing status information by registering first via `register` command:
 
 ```console
 $ register 1 2 3 4 5
