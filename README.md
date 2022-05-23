@@ -80,12 +80,12 @@ There are two distinct type of entities the operator handles: one is the Silicom
 
 <figcaption>
 
-**Figure 3** SMA Connector for GPS input receiver in Silicom Timing Synchronization (STS4) Card.
+**Figure 3** SubMiniature version A (SMA) Connector for GPS input receiver in Silicom Timing Synchronization (STS) Card.
 
 </figcaption>
 
 
-4. Launch debug pod in worker node equipped with STS4 card. To overcome package limitations from UBI8, we use a Fedora 36 image so that we can install both `usbutils` and `pciutils`:
+4. Launch debug pod in worker node equipped with STS card. To overcome package limitations from UBI8, we use a Fedora 36 image so that we can install both `usbutils` and `pciutils`:
 
   ```console
   oc debug node/du3-ldc1 --image=quay.io/fedora/fedora:36-x86_64
@@ -217,7 +217,7 @@ spec:
     build: false
 EOF
 ```  
-This will trigger the Operator to instantiate a Node Feature Discovery (NFD) Custom Resource (CR), which will detect worker nodes physically equipped with an Silicom Timing Synchronization card. This CR is consumed by the [`NFD Operator`][3]. Note that the Silicom Timing Synchronization Operator requires the presence [`NFD Operator`][3] in the same namespace. In this case, we have one node with an STS4 card, thus the node should have been automatically labeled by NFD with with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. We can check whether the aforementioned label is present:
+This will trigger the Operator to instantiate a Node Feature Discovery (NFD) Custom Resource (CR), which will detect worker nodes physically equipped with an Silicom Timing Synchronization card. This CR is consumed by the [`NFD Operator`][3]. Note that the Silicom Timing Synchronization Operator requires the presence [`NFD Operator`][3] in the same namespace. In this case, we have one node with an STS4 card, thus the node should have been automatically labeled by NFD with with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. We can check whether the aforementioned label is present in `du3-ldc1` node:
 
 ```console
 # oc describe node du3-ldc1 | grep custom-silicom.sts.devices=true
@@ -240,7 +240,7 @@ oc label node du3-ldc1 sts.silicom.com/config="gm-1"
 
 ### Instantiate StsConfig CR
 
-Create a StsConfig CR object to provision the desired Telecom PTP profile (i.e., T-GM.8275.1).
+Create a StsConfig CR object to provision the desired Telecom PTP profile [T-GM.8275.1][13] focused on phase/timing synchronization with full support from the network. 
 
 ```yaml
 cat <<EOF | oc apply -f -
@@ -302,21 +302,28 @@ sts-controller-manager-6b75cc8b45-mrd5c   2/2     Running   0          3m6s
 sts-plugin-lpxlh                          1/1     Running   0          2m40s
 ```
 
-The pods above represent the timing solution for T-GM of a node labeled `gm-1`. The diagram below illustrates the resulting Silicom Timing Synchronization stack deployment in the OpenShift worker node equipped with a Silicom STS4 card.
+The pods above represent the timing solution for T-GM of a node labeled `gm-1`. The diagram below illustrates the resulting Silicom Timing Synchronization stack deployment in the OpenShift worker node equipped with an STS card.
 
 ![Timing Stack](imgs/tgm.png)
 
 <figcaption>
 
-**Figure 7** Deployment of a T-GM in the OpenShift worker node.
+**Figure 7** Deployment of a T-GM in an OpenShift worker node equipped with an STS card.
 
 </figcaption>
 
-As showed in the Figure above the STSConfig CR instance triggers the creation of the following pods via the Silicom controller pod:
+As showed in the Figure above the STSConfig CR instance triggers the creation of the following containers via the Silicom controller pod:
 
-- `gpsd+sync_extts pod` that reads and distributes the timing information gathered from the GPS receiver. It also embeds a container that aligns the Silicom Hardware clock to the external timing information gathered from the GPS.
-- `tsync pod` in charge of aligning the Hardware clock of the Silicom Timing Synchronization card to the timing information received from `gpsd` container and distribute this information to other workloads (e.g., a O-DU workload in the same node) or to other nodes lower in the synchronization hierarchy
-- `phc2sys pod` that aligns the system clock to the Silicom Timing Synchronization Hardware clock.
+- `tsyncd` in charge of aligning the PTP Hardware clock of the STS card to the timing/phase information received from `gpsd` container and distribute this information to other workloads or to other nodes lower in the synchronization hierarchy.
+
+- `grpc_tsync`: exposes the timing synchronization API to get various type of synchronization-related info, subscribe to receiving notification events, and even allowing the configuration of timing parameters.
+
+- `gpsd`: reads and distributes the timing/phase information gathered from the GPS receiver.
+
+- `tsync_extts`, aligns the PTP Hardware clock to the external timing information gathered from the GPS receiver.
+
+
+- `phc2sys` that aligns the worker node system clock to the PTP Hardware clock embedded in the STS card.
 
 
 ## Telecom Grandmaster Operation <a name="stsops"></a>
@@ -414,7 +421,7 @@ Uninstalling the Operator can be done from the OperatorHub console in your OpenS
 
 <figcaption>
 
-**Figure 8** Uninstall Silicom Timing Synchronization Operator. 
+**Figure 8** Uninstall the Silicom Timing Synchronization Operator. 
 
 </figcaption>
 
@@ -473,3 +480,4 @@ Special thanks for their constructive insights to:
 [10]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/#:~:text=Silicom's%20STS4%20TimeSync%20card%20capable,in%20Master%20and%20Slave%20mode
 [11]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/10-gigabit-ethernet-networking-adapters/p410g8ts81-timesync-server-adapter/
 [12]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands
+[13]: https://www.itu.int/rec/T-REC-G.8275.1/recommendation.asp?lang=en&parent=T-REC-G.8275.1-202003-I
