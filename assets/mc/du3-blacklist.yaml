@@ -1,0 +1,17 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: ran-du-ldc1-smci03
+  name: 03-ran-du-ldc1-smci03-pps-ldisc
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          source: data:,blacklist%20pps_ldisc%0A
+        mode: 420
+        overwrite: true
+        path: /etc/modprobe.d/03-pps_ldisc.conf
