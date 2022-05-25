@@ -5,12 +5,12 @@ metadata:
   namespace: silicom
 spec:
   images:
-    #artifacts composing silicom timing sync stack
+    #images composing silicom timing sync stack
     tsyncd: quay.io/silicom/tsyncd:2.1.1.1
     tsyncExtts: quay.io/silicom/tsync_extts:1.0.0 
     phcs2Sys: quay.io/silicom/phcs2sys:3.1.1
     grpcTsyncd: quay.io/silicom/grpc-tsyncd:2.1.1.1 
-    stsPlugin: quay.io/silicom/sts-plugin:0.0.5
+    stsPlugin: quay.io/silicom/sts-plugin:0.0.6
     gpsd: quay.io/silicom/gpsd:3.23.1
   sro:
-    build: false #after loading driver we cant put it to false
+    build: false 
