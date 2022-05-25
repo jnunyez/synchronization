@@ -2,7 +2,7 @@
 
 Are you working with baremetal clusters and looking for a timing and synchronization solution for your containerized workloads? The Silicom Timing Synchronization (STS) Operator was just released as a [Certified Operator on OpenShift][5].
 
-Synchronization and precise timing via Global Positioning Systems (GPS) is of paramount importance for 5G [Open Radio Access Networks (O-RAN)][6]. This blog shows how easy it is to install the STS Operator on Red Hat OpenShift Container Platform, and use it to configure specialized Columbiaville NIC adapters from Silicom in OpenShift Container Platform. Besides, we are going to show how to configure the time synchronization functionality on a Telecom Grand Master (T-GM) node.
+Synchronization and precise timing via Global Positioning Systems (GPS) is of paramount importance for 5G [Open Radio Access Networks (O-RAN)][6]. This blog shows how easy it is to install the STS Operator on Red Hat OpenShift Container Platform, and use it to configure specialized Columbiaville NIC adapters from Silicom in OpenShift Container Platform. Besides, we are going to show how to configure the time synchronization functionality on a Telecom Grandmaster (T-GM) node.
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ Synchronization and precise timing via Global Positioning Systems (GPS) is of pa
 
 In 5G O-RAN, multiple distributed network elements require getting frequency, time, and phase information. In a packet-based network, Precision Time Protocol (PTP), along with Synchronous Ethernet (SyncE), are prominently the dedicated protocols to carry such information required for achieving synchronization. The synchronization solution consists of the following elements:
 
-- The recipient of the GNSS information in a PTP network is referred to as the Telecom Grand Master (T-GM). The T-GM consumes the frequency, phase, and timing info from a Primary Reference Time Clock (PRTC) to calibrate its clock and distribute the frequency, phase, and time signal via PTP to its connected network elements lower in the synchronization hierarchy.
+- The recipient of the GNSS information in a PTP network is referred to as the Telecom Grandmaster (T-GM). The T-GM consumes the frequency, phase, and timing info from a Primary Reference Time Clock (PRTC) to calibrate its clock and distribute the frequency, phase, and time signal via PTP to its connected network elements lower in the synchronization hierarchy.
 
 - The Telecom Time Slave Clock (T-TSC) functionality terminates the PTP protocol and recovers the clock from one or more master clocks. For instance, in O-RAN an Open Remote Radio Unit (O-RRU) contains the slave functionality for its usage.
 
@@ -143,7 +143,7 @@ Assure that the GPS input is getting GPS data:
 
 ### Install Operators from the embedded OperatorHub
 
-Now that the card has been installed, we proceed to installing the required Operators in our OpenShift cluster. These pieces of software will be in charge of configuring the Timing Synchronization aspects supported by the card.
+Now that the card has been installed, we proceed to installing the required Operators in our OpenShift cluster. These pieces of software are in chrage of the Lifecycle management of the Timing Synchronization aspects supported by the card.
 
 #### Create namespace
 We first create a namespace from the Web Console. Go to **Administration->Namespaces** and click
@@ -161,11 +161,11 @@ We first create a namespace from the Web Console. Go to **Administration->Namesp
 </figcaption>
 
 #### Install Node Feature Discovery Operator
-We proceed to install the Node Feature Discovery Operator in the `silicom` namespace:
+We proceed to install the Node Feature Discovery Operator in a generic namespace, for instance `openshift-operators`:
 
   * select *stable* as **Update channel**
-  * select *A specific namespace on the cluster* as **Installation mode**
-  * select *silicom* namespace as **Installed Namespace**  
+  * select *All namespaces on the cluster* as **Installation mode**
+  * select *openshift-operators* namespace as **Installed Namespace**  
   * select *Automatic* as **Update approval**
 
 ![operatornfd](imgs/01_installnfd.png)
@@ -217,7 +217,7 @@ spec:
     build: false
 EOF
 ```  
-This will trigger the Operator to instantiate a Node Feature Discovery (NFD) Custom Resource (CR), which will detect worker nodes physically equipped with an Silicom Timing Synchronization card. This CR is consumed by the [`NFD Operator`][3]. Note that the Silicom Timing Synchronization Operator requires the presence [`NFD Operator`][3] in the same namespace. In this case, we have one node with an STS4 card, thus the node should have been automatically labeled by NFD with with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. We can check whether the aforementioned label is present in `du3-ldc1` node:
+This will trigger the Operator to instantiate a Node Feature Discovery (NFD) Custom Resource (CR), which will detect worker nodes physically equipped with an Silicom Timing Synchronization card. This CR is consumed by the [`NFD Operator`][3]. Note that the Silicom Timing Synchronization Operator requires the presence [`NFD Operator`][3] watching for the NFD CRs created by the Silicom Timing Synchronization Operator. In this case, we have one node with an STS4 card, thus the node should have been automatically labeled by NFD with with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. We can check whether the aforementioned label is present in `du3-ldc1` node:
 
 ```console
 # oc describe node du3-ldc1 | grep custom-silicom.sts.devices=true
@@ -293,7 +293,6 @@ After deploying the StsConfig CR, we can examine the set of pods present in `sil
 gm-1-du3-ldc1-gpsd-b4v49                  2/2     Running   0          57s
 gm-1-du3-ldc1-phc2sys-gss5c               1/1     Running   0          57s
 gm-1-du3-ldc1-tsync-gmwl4                 2/2     Running   0          57s
-nfd-controller-manager-b6c99794d-rj4q5    2/2     Running   0          3m31s
 nfd-master-h47wb                          1/1     Running   0          2m40s
 nfd-master-qfgj9                          1/1     Running   0          2m39s
 nfd-master-rtcfs                          1/1     Running   0          2m40s
