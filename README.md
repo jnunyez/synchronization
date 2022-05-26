@@ -2,7 +2,7 @@
 
 Are you working with baremetal clusters and looking for a timing and synchronization solution for your containerized workloads? The Silicom Timing Synchronization (STS) Operator was just released as a [Certified Operator on OpenShift][5].
 
-Synchronization and precise timing via Global Positioning Systems (GPS) is of paramount importance for 5G [Open Radio Access Networks (O-RAN)][6]. This blog shows how easy it is to install the STS Operator on Red Hat OpenShift Container Platform, and use it to configure specialized Columbiaville NIC adapters from Silicom in OpenShift Container Platform. Besides, we are going to show how to configure the time synchronization functionality on a Telecom Grandmaster (T-GM) node.
+Synchronization and precise timing via Global Positioning Systems (GPS) is of paramount importance for 5G [Open Radio Access Networks (O-RAN)][6]. This blog shows how easy it is to install the STS Operator on Red Hat OpenShift Container Platform, and use it to configure specialized E810 NIC adapters from Silicom in OpenShift Container Platform. Besides, we are going to show how to configure the time synchronization functionality on a Telecom Grandmaster (T-GM) node.
 
 ## Table of Contents
 
@@ -35,7 +35,7 @@ In 5G O-RAN, multiple distributed network elements require getting frequency, ti
 
 - The Telecom Boundary Clock (T-BC) combines both slave and master functions. At the slave side, it receives PTP packets from, e.g., one or more master clocks, terminates the PTP, and recovers clock from the best master clock, using Best Master Clock Algorithm (BMCA). At master side, new PTP sessions are created based on the timing information of the boundary clock. Information in PTP is passed to the next boundary or slave clock in the chain.
 
-T-BC, T-TSC, and T-GM functionality can be implemented using specific NICs with time synchronization support. [Silicom Timing Synchronization (STS) NICs][2] contain Intel E810 NIC (also known as Columbiaville) controllers and phase-locked loop (PLL)-based clocks, combined with an oscillator of high accuracy to comply with both PTP and SyncE to target O-RAN synchronization requirements in 5G systems.
+T-BC, T-TSC, and T-GM functionality can be implemented using specific NICs with time synchronization support. [Silicom Timing Synchronization (STS) NICs][2] contain Intel E810 NIC controllers and phase-locked loop (PLL)-based clocks, combined with an oscillator of high accuracy to comply with both PTP and SyncE to target O-RAN synchronization requirements in 5G systems.
 
 ## Pre-requisites <a name="pre-requisites"></a>
 
@@ -313,7 +313,7 @@ The pods above represent the timing solution for T-GM of a node labeled `gm-1`. 
 
 As showed in the Figure above the STSConfig CR instance triggers the creation of the following containers via the Silicom controller pod:
 
-- `tsyncd` in charge of aligning the PTP Hardware clock of the STS card to the timing/phase information received from `gpsd` container and distribute this information to other workloads or to other nodes lower in the synchronization hierarchy.
+- `tsyncd` is the main PTP and ESMC daemon, and it is also in charge of managing the synchronization paths on the physical card underneath, e.g., form GNSS (controlled by gpsd container) to the main system clock, from main system clock to e810 PHC, etc.
 
 - `grpc_tsync`: exposes the timing synchronization API to get various type of synchronization-related info, subscribe to receiving notification events, and even allowing the configuration of timing parameters.
 
