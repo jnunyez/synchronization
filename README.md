@@ -237,7 +237,7 @@ Now we proceed to configure the baremetal worker node `du3-ldc1` as Telecom Gran
 Add a node label `gm-1` in the worker node that has GPS cable connected to the (i.e., in our case worker node named `du3-ldc1`).
 
 ```console
-oc label node du3-ldc1 sts.silicom.com/config="gm-1"
+# oc label node du3-ldc1 sts.silicom.com/config="gm-1"
 ```
 
 ### Instantiate StsConfig CR
@@ -246,7 +246,7 @@ Create a StsConfig CR object to provision the desired Telecom PTP profile [T-GM.
 Note that by means of `nodeSelector` we are explicitly constrainig the nodes in the cluster where to provision the Telecom PTP profile to those nodes with `sts.silicom.com/config=gm-1`.
 
 ```yaml
-cat <<EOF | oc apply -f -
+# cat <<EOF | oc apply -f -
 apiVersion: sts.silicom.com/v1alpha1
 kind: StsConfig
 metadata:
@@ -320,7 +320,7 @@ As showed in the Figure above the STSConfig CR instance triggers the creation of
 
 - `grpc_tsync`: exposes the timing synchronization API to get various type of synchronization-related info, subscribe to receiving notification events, and even allowing the configuration of timing parameters.
 
-- `gpsd`: reads and distributes the timing/phase/frequency information gathered from the GNSS receiver.
+- `gpsd` container reads and distributes the timing/phase/frequency information gathered from the GNSS receiver.
 
 - `tsync_extts`, aligns the PTP Hardware clock to the external timing information gathered from the GNSS receiver.
 
@@ -374,11 +374,15 @@ get_timing_stats  [params] - Get Timing statistics (requires registration)
 .
 ```
 
-
-4. You can gather more detailed timing status information by registering first via `register` command:
+4. Register the gRPC client first via `register` command (register and deregister are commands to get acces for Timing Info/ Timing Config related commands, contact [Silicom](mailto:support@silicom-usa.com) for further information):
 
 ```console
 $ register 1 2 3 4 5
+```
+
+5. Once the gRPC client is registered, it can call any timing commands with the registered set of parameters (contact [Silicom](mailto:support@silicom-usa.com) for further information):
+
+```console
 $ get_timing_status 1 2 3 4 5
 
 Timing Status:
@@ -415,6 +419,7 @@ GNSS Latitude:    32.943067
 GNSS Longitude:   -96.994507
 GNSS Height:    143.924000
 ```
+
 
 ## Uninstalling the Silicom Timing Synchronization Operator from the embedded OperatorHub <a name="uninstalling"></a>
 
