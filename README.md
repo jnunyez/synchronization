@@ -29,7 +29,7 @@ Synchronization and precise timing via Global Positioning Systems (GPS) is of pa
 
 In 5G O-RAN, multiple distributed network elements require getting frequency, time, and phase information. In a packet-based network, Precision Time Protocol (PTP), along with Synchronous Ethernet (SyncE), are prominently the dedicated protocols to carry such information required for achieving synchronization. The synchronization solution consists of the following elements:
 
-- The recipient of the GNSS information in a PTP network is referred to as the Telecom Grandmaster (T-GM). The T-GM consumes the frequency, phase, and timing info from a Primary Reference Time Clock (PRTC) to calibrate its clock and distribute the frequency, phase, and time signal via PTP to its connected network elements lower in the synchronization hierarchy.
+- The recipient of the frequency, phase, and timing information derived from multiple GNSS signals in a PTP network is referred to as the Telecom Grandmaster (T-GM). The T-GM consumes the frequency, phase, and timing info from the GNSS receiver acting as Primary Reference Time Clock (PRTC) to calibrate its clock and distribute the frequency, phase, and time signal via PTP to its connected network elements lower in the synchronization hierarchy.
 
 - The Telecom Time Slave Clock (T-TSC) functionality terminates the PTP protocol and recovers the clock from one or more master clocks. For instance, in O-RAN an Open Remote Radio Unit (O-RRU) contains the slave functionality for its usage.
 
@@ -63,7 +63,7 @@ Before we proceed to the installation of the Silicom Timing Synchronization Oper
   - Red Hat Enterprise Linux CoreOS.
   - PCI-Express 4.0 x16 free slot in worker node.
 
-- A container image with the following utilities installed: `lspci`, `ethtools`, and `lsusb`. This image will be used in the worker node equipped with STS card.
+- A container image with the following utilities installed: `lspci`, `ethtools`, and `lsusb`. This image will be used in the worker node equipped with STS card. The image can be pre-built and pushed into a container image registry such as [Red Hat Quay][14] or built locally as an ephemeral container. 
 
 
 ## Install Silicom Timing Synchronization Operator <a name="installation"></a>
@@ -73,8 +73,8 @@ There are two distinct type of entities the operator handles: one is the Silicom
 #### Install Silicom Timing Synchronization (STS) Card in Worker
 
 1. Install the card in a PCI-Express 4.0 x16 slot inside a baremetal worker node.
-2. Connect USB cable from uUSB in card to USB port in worker node and switch-on the worker node.
-3. Connect GPS Antenna to the GPS Input of the STS4 card (see Figure below).
+2. Connect USB cable from uUSB in card to USB port in the baremetal worker node.
+3. Connect GPS Antenna to the GPS Input of the STS card (see Figure below).
 
 ![Silicom Card](imgs/00_card.png)
 
@@ -84,15 +84,15 @@ There are two distinct type of entities the operator handles: one is the Silicom
 
 </figcaption>
 
-
-4. Launch debug pod in worker node equipped with STS card. To overcome package limitations from UBI8, we use a Fedora 36 image so that we can install both `usbutils` and `pciutils`:
+4. Switch-on the baremetal worker node equipped with an STS card.
+5. Launch debug pod in the baremetal worker node equipped with STS card (in this case the node name is `du3-ldc1`). Since we just want to do a few ephemeral interactive checks with the debug pod, we take a Fedora 36 image and install both `usbutils`, `ethtools`, and `pciutils`:
 
   ```console
   oc debug node/du3-ldc1 --image=quay.io/fedora/fedora:36-x86_64
   sh-5.1# dnf -y install ethtool usbutils pciutils
   ```
 
-Two USB lines must be detected, the U-Blox GNSS receiver (Vendor IDs 1546) and the Silicom propietary USB (Vendor ID 1373):
+6. Two USB lines must be detected, the U-Blox GNSS receiver (Vendor IDs 1546) and the Silicom propietary USB (Vendor ID 1373):
 
   ```console
    # lsusb -d 1546:
@@ -101,7 +101,7 @@ Two USB lines must be detected, the U-Blox GNSS receiver (Vendor IDs 1546) and t
    Bus 004 Device 003: ID 1374:0001 Silicom Ltd. Tsync USB Device
   ```
 
-Check that the Intel E810 NIC has been detected:
+7. Check that the Intel E810 Physical Functions (PFs) have been detected. In the case of an STS4 card a total of 12PFs must be detected:
 
   ```console
    # lspci -d 8086: | grep E810
@@ -119,7 +119,7 @@ Check that the Intel E810 NIC has been detected:
    53:00.3 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
   ```
 
-The firmware in the card must be greater or equal than 3.10, check the firmware version of the card by getting the NIC name (in this case `enp81s0f2`). The interface name can be obtained from the PCI number (in our case `51:00` is the PCI):
+8. Check that the firmware in the card must be greater or equal than 3.10, check the firmware version of the card by getting the NIC name (in this case `enp81s0f2`). The interface name can be obtained from the PCI number (as showed above, in our case `51:00` is the PCI):
 
   ```console
   # ls  /sys/bus/pci/devices/0000\:51\:00.2/net
@@ -127,7 +127,7 @@ The firmware in the card must be greater or equal than 3.10, check the firmware 
   # ethtool -i enp81s0f2 | grep firmware
   firmware-version: 3.10 0x8000d86d 1.3106.0
   ```
-Assure that the GPS input is getting GPS data:
+9. Assure that the GPS input is getting proper GPS data:
 
   ```console
   # stty -F /dev/ttyACM0 raw
@@ -140,12 +140,12 @@ Assure that the GPS input is getting GPS data:
   $GNGSA,A,3,,,,,,,,,,,,,99.99,99.99,99.99,4*34
   ```
 
-
 ### Install Operators from the embedded OperatorHub
 
-Now that the card has been installed, we proceed to installing the required Operators in our OpenShift cluster. These pieces of software are in chrage of the Lifecycle management of the Timing Synchronization aspects supported by the card.
+Now that the card has been properly installed and it is receiving proper GNSS data from GPS input, we proceed to install the Silicom Timing Synchronization Operator and its requirements in our OpenShift cluster. 
 
 #### Create namespace
+
 We first create a namespace from the Web Console. Go to **Administration->Namespaces** and click
 **Create Namespace**:
 
@@ -161,6 +161,7 @@ We first create a namespace from the Web Console. Go to **Administration->Namesp
 </figcaption>
 
 #### Install Node Feature Discovery Operator
+
 We proceed to install the Node Feature Discovery Operator in a generic namespace, for instance `openshift-operators`:
 
   * select *stable* as **Update channel**
@@ -177,7 +178,7 @@ We proceed to install the Node Feature Discovery Operator in a generic namespace
 </figcaption>
 
 #### Install Silicom Timing Synchronization Operator
-By means of the OpenShift Web Console, let's install the Silicom Timing Synchronization Operator in the `silicom` namespace:
+By means of the OpenShift Web Console, install the Silicom Timing Synchronization Operator in the `silicom` namespace:
 
   * select *alpha* as **Update channel**
   * select *A specific namespace on the cluster* as **Installation mode**
@@ -217,18 +218,19 @@ spec:
     build: false
 EOF
 ```  
-This will trigger the Operator to instantiate a Node Feature Discovery (NFD) Custom Resource (CR), which will detect worker nodes physically equipped with an Silicom Timing Synchronization card. This CR is consumed by the [`NFD Operator`][3]. Note that the Silicom Timing Synchronization Operator requires the presence [`NFD Operator`][3] watching for the NFD CRs created by the Silicom Timing Synchronization Operator. In this case, we have one node with an STS4 card, thus the node should have been automatically labeled by NFD with with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. We can check whether the aforementioned label is present in `du3-ldc1` node:
+This will trigger the Operator to instantiate a Node Feature Discovery (NFD) Custom Resource (CR), which will detect worker nodes physically equipped with a Silicom Timing Synchronization card. This CR is consumed by the [`NFD Operator`][3]. Note that the Silicom Timing Synchronization Operator requires the presence of the [`NFD Operator`][3] watching for the NFD CRs that will be created by the Silicom Timing Synchronization Operator after the creation of an `StsOperatoConfig` CR. 
+Here we have one node with an STS card, thus the node should have been automatically labeled by NFD with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. We can check whether the aforementioned label is present in `du3-ldc1` node:
 
 ```console
 # oc describe node du3-ldc1 | grep custom-silicom.sts.devices=true
                     feature.node.kubernetes.io/custom-silicom.sts.devices=true
 ```
 
-After this, the Silicom Timing Synchronization Operator creates a daemonset called `sts-plugin` in those nodes labeled by NFD with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. This daemonset is in charge of maintaining the state of the STS cards configuration.
+After this, the Silicom Timing Synchronization Operator creates a daemonset called `sts-plugin` in those nodes labeled by NFD with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. This daemonset is in charge of maintaining the state of the STS cards (e.g., port status information).
 
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
 
-Now we proceed to configure the detected worker node `du3-ldc1` as Grandmaster.
+Now we proceed to configure the baremetal worker node `du3-ldc1` as Telecom Grandmaster (T-GM).
 
 ### Label Grandmaster Node
 
@@ -241,6 +243,7 @@ oc label node du3-ldc1 sts.silicom.com/config="gm-1"
 ### Instantiate StsConfig CR
 
 Create a StsConfig CR object to provision the desired Telecom PTP profile [T-GM.8275.1][13] focused on phase/timing synchronization with full support from the network. 
+Note that by means of `nodeSelector` we are explicitly constrainig the nodes in the cluster where to provision the Telecom PTP profile to those nodes with `sts.silicom.com/config=gm-1`.
 
 ```yaml
 cat <<EOF | oc apply -f -
@@ -274,13 +277,13 @@ spec:
 EOF                 
 ```
 
-* For a full listing of the possible Silicom Timing Synchronization configuration parameters and their possible values:
+* For a full listing of the possible Silicom Timing Synchronization configuration parameters and their possible values in `StsConfig` CR:
 
 ``` console
 # oc explain StsConfig.spec
 ```
 
-* For a full listing of possible Gnss configuration parameters:
+* Also, for a full listing of possible Gnss configuration parameters and values in `gnssSpec` field within `StsConfig` CR:
 
 ```console
 # oc explain StsConfig.spec.GnssSpec
@@ -313,11 +316,11 @@ The pods above represent the timing solution for T-GM of a node labeled `gm-1`. 
 
 As showed in the Figure above the STSConfig CR instance triggers the creation of the following containers via the Silicom controller pod:
 
-- `tsyncd` is the main PTP and ESMC daemon, and it is also in charge of managing the synchronization paths on the physical card underneath, e.g., form GNSS (controlled by gpsd container) to the main system clock, from main system clock to e810 PHC, etc.
+- `tsyncd` is the main PTP and Ethernet Synchronization Message Channel (ESMC) daemon, and it is also in charge of managing the synchronization paths on the physical card underneath, e.g., from GNSS (controlled by the gpsd container as detailed below) to the main system clock, and from main system clock to the E810 PTP Hardware Clock (PHC).
 
 - `grpc_tsync`: exposes the timing synchronization API to get various type of synchronization-related info, subscribe to receiving notification events, and even allowing the configuration of timing parameters.
 
-- `gpsd`: reads and distributes the timing/phase information gathered from the GNSS receiver.
+- `gpsd`: reads and distributes the timing/phase/frequency information gathered from the GNSS receiver.
 
 - `tsync_extts`, aligns the PTP Hardware clock to the external timing information gathered from the GNSS receiver.
 
@@ -328,7 +331,7 @@ As showed in the Figure above the STSConfig CR instance triggers the creation of
 
 The timing stack is deployed in our OpenShift cluster, how do we know it is synchronizing the clock in the Silicom Timing Synchronization card? It is easy. The timing synchronization software stack exposes an API based on gRPC to query timing status information.
 
-1. Execute a grpc client in the container exposing the gRPC API. This command below launches gRPC client:
+1. Execute a gRPC client in the container exposing the gRPC API. This command below launches gRPC client:
 
 ```console
 oc exec -it gm-1-du3-ldc1-tsync-pkxwv -c du3-ldc1-grpc-tsyncd -- tsynctl_grpc
@@ -481,3 +484,4 @@ Special thanks for their constructive insights to:
 [11]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/10-gigabit-ethernet-networking-adapters/p410g8ts81-timesync-server-adapter/
 [12]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands
 [13]: https://www.itu.int/rec/T-REC-G.8275.1/recommendation.asp?lang=en&parent=T-REC-G.8275.1-202003-I
+[14]: https://www.redhat.com/en/technologies/cloud-computing/quay
