@@ -47,7 +47,7 @@ Before we proceed to the installation of the Silicom Timing Synchronization Oper
 
 - A [certified Silicom Timing Synchronization (STS) physical card][9]. In particular, either an [STS4][10], or an [STS2][11] card physically installed in one of your baremetal worker nodes.  
 
-![Silicom Card](imgs/01_card.png)
+![Silicom Card](imgs/00_card.jpg)
 
 <figcaption>
 
@@ -76,7 +76,7 @@ There are two distinct type of entities the operator handles: one is the Silicom
 2. Connect USB cable from uUSB in card to USB port in the baremetal worker node.
 3. Connect GPS Antenna to the GPS Input of the STS card (see Figure below).
 
-![Silicom Card](imgs/00_card.png)
+![Silicom Card](imgs/01_card.jpg)
 
 <figcaption>
 
