@@ -5,7 +5,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   sourceType: grpc
-  image: quay.io/jnunez/sts-operator-catalog:0.0.6
+  image: quay.io/silicom/sts-operator-catalog:0.0.8
   displayName: testing-catalog
   updateStrategy:
     registryPoll:
