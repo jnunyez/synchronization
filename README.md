@@ -119,13 +119,13 @@ There are two distinct type of entities the operator handles: one is the Silicom
    53:00.3 Ethernet controller: Intel Corporation Ethernet Controller E810-C for backplane (rev 02)
   ```
 
-8. Check that the firmware in the card must be greater or equal than 3.10, check the firmware version of the card by getting the NIC name (in this case `enp81s0f2`). The interface name can be obtained from the PCI number (as showed above, in our case `51:00` is the PCI):
+8. Check that the firmware in the card must be greater or equal than 3.20, check the firmware version of the card by getting the NIC name (in this case `enp81s0f2`). The interface name can be obtained from the PCI number (as showed above, in our case `51:00` is the PCI):
 
   ```console
   # ls  /sys/bus/pci/devices/0000\:51\:00.2/net
   enp81s0f2
   # ethtool -i enp81s0f2 | grep firmware
-  firmware-version: 3.10 0x8000d86d 1.3106.0
+  firmware-version: 3.20 0x8000eb26 1.3146.0
   ```
 9. Assure that the GPS input is getting proper GPS data:
 
@@ -207,13 +207,7 @@ metadata:
   name: sts-operator-config
   namespace: silicom
 spec:
-  images:
-    tsyncd: quay.io/silicom/tsyncd:2.1.1.1
-    tsyncExtts: quay.io/silicom/tsync_extts:1.0.0
-    phcs2Sys: quay.io/silicom/phcs2sys:3.1.1
-    grpcTsyncd: quay.io/silicom/grpc-tsyncd:2.1.1.1
-    stsPlugin: quay.io/silicom/sts-plugin:0.0.6
-    gpsd: quay.io/silicom/gpsd:3.23.1
+  images: {}
   sro:
     build: false
 EOF
