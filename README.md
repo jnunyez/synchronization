@@ -85,10 +85,10 @@ There are two distinct type of entities the operator handles: one is the Silicom
 </figcaption>
 
 4. Switch-on the baremetal worker node equipped with an STS card.
-5. Launch debug pod in the baremetal worker node equipped with STS card (in this case the node name is `du3-ldc1`). Since we just want to do a few ephemeral interactive checks with the debug pod, we take a Fedora 36 image and install both `usbutils`, `ethtools`, and `pciutils`:
+5. Launch debug pod in the baremetal worker node equipped with STS card (in this case the node name is `du4-ldc1`). Since we just want to do a few ephemeral interactive checks with the debug pod, we take a Fedora 36 image and install both `usbutils`, `ethtools`, and `pciutils`:
 
   ```console
-  oc debug node/du3-ldc1 --image=quay.io/fedora/fedora:36-x86_64
+  oc debug node/du4-ldc1 --image=quay.io/fedora/fedora:36-x86_64
   sh-5.1# dnf -y install ethtool usbutils pciutils
   ```
 
@@ -213,10 +213,10 @@ spec:
 EOF
 ```  
 This will trigger the Operator to instantiate a Node Feature Discovery (NFD) Custom Resource (CR), which will detect worker nodes physically equipped with a Silicom Timing Synchronization card. This CR is consumed by the [`NFD Operator`][3]. Note that the Silicom Timing Synchronization Operator requires the presence of the [`NFD Operator`][3] watching for the NFD CRs that will be created by the Silicom Timing Synchronization Operator after the creation of an `StsOperatoConfig` CR. 
-Here we have one node with an STS card, thus the node should have been automatically labeled by NFD with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. We can check whether the aforementioned label is present in `du3-ldc1` node:
+Here we have one node with an STS card, thus the node should have been automatically labeled by NFD with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. We can check whether the aforementioned label is present in `du4-ldc1` node:
 
 ```console
-# oc describe node du3-ldc1 | grep custom-silicom.sts.devices=true
+# oc describe node du4-ldc1 | grep custom-silicom.sts.devices=true
                     feature.node.kubernetes.io/custom-silicom.sts.devices=true
 ```
 
@@ -224,14 +224,14 @@ After this, the Silicom Timing Synchronization Operator creates a daemonset call
 
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
 
-Now we proceed to configure the baremetal worker node `du3-ldc1` as Telecom Grandmaster (T-GM).
+Now we proceed to configure the baremetal worker node `du4-ldc1` as Telecom Grandmaster (T-GM).
 
 ### Label Grandmaster Node
 
-Add a node label `gm-1` in the worker node that has GPS cable connected to the (i.e., in our case worker node named `du3-ldc1`).
+Add a node label `gm-1` in the worker node that has GPS cable connected to the (i.e., in our case worker node named `du4-ldc1`).
 
 ```console
-# oc label node du3-ldc1 sts.silicom.com/config="gm-1"
+# oc label node du4-ldc1 sts.silicom.com/config="gm-1"
 ```
 
 ### Instantiate StsConfig CR
@@ -287,15 +287,20 @@ After deploying the StsConfig CR, we can examine the set of pods present in `sil
 
 ```console
 # oc get pods -n silicom          
-gm-1-du3-ldc1-gpsd-b4v49                  2/2     Running   0          57s
-gm-1-du3-ldc1-phc2sys-gss5c               1/1     Running   0          57s
-gm-1-du3-ldc1-tsync-gmwl4                 2/2     Running   0          57s
-nfd-master-h47wb                          1/1     Running   0          2m40s
-nfd-master-qfgj9                          1/1     Running   0          2m39s
-nfd-master-rtcfs                          1/1     Running   0          2m40s
-nfd-worker-4vprx                          1/1     Running   0          2m39s
-sts-controller-manager-6b75cc8b45-mrd5c   2/2     Running   0          3m6s
-sts-plugin-lpxlh                          1/1     Running   0          2m40s
+gm-1-du4-ldc1-tsync-fwcqq                 5/5     Running   0          2d18h
+nfd-master-d75lc                          1/1     Running   0          2d19h
+nfd-master-dxshn                          1/1     Running   0          2d19h
+nfd-master-stc7b                          1/1     Running   0          2d19h
+nfd-worker-4sbtz                          1/1     Running   0          2d19h
+nfd-worker-72w9s                          1/1     Running   0          2d19h
+nfd-worker-blj7t                          1/1     Running   0          2d19h
+nfd-worker-ltcg7                          1/1     Running   0          2d19h
+nfd-worker-tz9rt                          1/1     Running   0          2d19h
+nfd-worker-vsrxh                          1/1     Running   2          2d17h
+nfd-worker-wlm46                          1/1     Running   0          2d19h
+sts-controller-manager-7c988554b7-7mtv7   2/2     Running   0          2d19h
+sts-plugin-mt8n7                          1/1     Running   1          2d19h
+sts-plugin-s2kst                          1/1     Running   4          2d17h
 ```
 
 The pods above represent the timing solution for T-GM of a node labeled `gm-1`. The diagram below illustrates the resulting Silicom Timing Synchronization stack deployment in the OpenShift worker node equipped with an STS card.
@@ -328,9 +333,8 @@ The timing stack is deployed in our OpenShift cluster, how do we know it is sync
 1. Execute a gRPC client in the container exposing the gRPC API. This command below launches gRPC client:
 
 ```console
-oc exec -it gm-1-du3-ldc1-tsync-pkxwv -c du3-ldc1-grpc-tsyncd -- tsynctl_grpc
-Tsynctl gRPC Client v1.0.9
-$
+# oc exec -it  gm-1-du4-ldc1-tsync-fwcqq -c du4-ldc1-grpc-tsyncd -- tsynctl_grpc
+Tsynctl gRPC Client v1.1.2
 ```
 
 2. You can now check the status of the GM clock in the Silicom network card. `LOCKED` state means that the PTP HW clock in the STS card is aligned to the received timing/phase information from the GNSS receiver: 
@@ -371,7 +375,12 @@ get_timing_stats  [params] - Get Timing statistics (requires registration)
 4. Register the gRPC client first via `register` command (register and deregister are commands to get acces for Timing Info/ Timing Config related commands, contact [Silicom](mailto:support@silicom-usa.com) for further information):
 
 ```console
-$ register 1 2 3 4 5
+$ register 1 1 1 1 1
+msId:           1
+msInstance:     1
+appId:          1
+basebandId:     1
+remoteAppId:    1
 ```
 
 5. Once the gRPC client is registered, it can call any timing commands with the registered set of parameters (contact [Silicom](mailto:support@silicom-usa.com) for further information):
@@ -379,39 +388,69 @@ $ register 1 2 3 4 5
 ```console
 $ get_timing_status 1 2 3 4 5
 
+Number of ports:    12
+
+msId:               1
+msInstance:         1
+appId:              1
+basebandId:         1
+
 Timing Status:
 ==============
-Clock Mode:   GM Clock
+Clock Mode:     GM Clock
 
 Clock Status:
 =============
-Sync Status:    Locked
-PTP Lock Status:  Locked
-Synce Lock Status:  Locked
-Sync Failure Cause: N/A
+Sync Status:      Locked
+PTP Lock Status:    Unknown
+Synce Lock Status:    Unknown
+Sync Failure Cause:   N/A
 
 PTP Data:
 =========
-Profile:    G_8275_1
-GM Clock ID:    00:E0:ED:FF:FE:F0:28:EC
-Parent Clock ID:  00:E0:ED:FF:FE:F0:28:EC
-Configured Clock Class: 248
-Received Clock Class: 6
-PTP Interface:    according to T-GM series Port Bit Mask value in tsyncd.conf file
+Profile:      G_8275_1
+GM Clock ID:      00:E0:ED:FF:FE:F0:96:04
+Parent Clock ID:    00:E0:ED:FF:FE:F0:96:04
+Configured Clock Class:   248
+Received Clock Class:   6
+PTP Interface 1:    
+PTP Port 1 Role:    Master
+PTP Interface 2:    
+PTP Port 2 Role:    Master
+PTP Interface 3:    enp81s0f0
+PTP Port 3 Role:    Master
+PTP Interface 4:    
+PTP Port 4 Role:    Master
+PTP Interface 5:    
+PTP Port 5 Role:    Master
+PTP Interface 6:    
+PTP Port 6 Role:    Master
+PTP Interface 7:    
+PTP Port 7 Role:    Master
+PTP Interface 8:    
+PTP Port 8 Role:    Master
+PTP Interface 9:    
+PTP Port 9 Role:    Master
+PTP Interface 10:   
+PTP Port 10 Role:   Master
+PTP Interface 11:   
+PTP Port 11 Role:   Master
+PTP Interface 12:   
+PTP Port 12 Role:   Master
 
 SyncE Data:
 ===========
-SyncE Interface:  according to T-GM series SyncE Port Bit Mask value in tsyncd.conf file
-Clock Quality:    4
+SyncE Interface:    according to T-GM series SyncE Port Bit Mask value in tsyncd.conf file
+Clock Quality:      4
 
 GNSS Data:
 ==========
-Number of satellites: 31
-GNSS Fix Type:    5
-GNSS Fix Validity:  true
-GNSS Latitude:    32.943067
-GNSS Longitude:   -96.994507
-GNSS Height:    143.924000
+Number of satellites:   27
+GNSS Fix Type:      5
+GNSS Fix Validity:    true
+GNSS Latitude:      329430555
+GNSS Longitude:     3325022222
+GNSS Height:      142689
 ```
 
 
@@ -430,7 +469,7 @@ Uninstalling the Operator can be done from the OperatorHub console in your OpenS
 You will see how the time synchronization service is still active because CRs we previously provisioned and the physical card are still present. The CRDs `StsNodes`, `StsOperatorConfig`, and `StsConfig` keep the created GM role active.
 
 ```console
-$ oc get stsnodes du3-ldc1
+$ oc get stsnodes du4-ldc1
 .
 .
 gpsStatus:
@@ -441,7 +480,7 @@ gpsStatus:
   status: Normal Status
 ```
 
-Note that although the Operator is no longer installed, the time synchronization service is still detecting a GPS device, and `du3-ldc1` is still acting as master node. This is common amongst Operators in general to prevent a data loss situation or outages in case the operator is uninstalled unintentionally. This policy is of special interest in our case since time synchronization is a critical service to keep active in 5G deployments. To fully uninstall the Silicom Timing Synchronization stack, it is needed to:
+Note that although the Operator is no longer installed, the time synchronization service is still detecting a GPS device, and `du4-ldc1` is still acting as master node. This is common amongst Operators in general to prevent a data loss situation or outages in case the operator is uninstalled unintentionally. This policy is of special interest in our case since time synchronization is a critical service to keep active in 5G deployments. To fully uninstall the Silicom Timing Synchronization stack, it is needed to:
 
 * Delete the pods associated to the Silicom Timing Synchronization stack.
 
@@ -456,7 +495,7 @@ $ oc delete stsoperatorconfig sts-operator-config
 * Delete the CR that maintains the nodes with a Silicom Timing Synchronization card.
 
 ```console
-$ oc delete stsnode du3-ldc1
+$ oc delete stsnode du4-ldc1
 ```
 
 ## Wrap-up <a name="conclusion"></a>
