@@ -386,7 +386,7 @@ remoteAppId:    1
 5. Once the gRPC client is registered, it can call any timing commands with the registered set of parameters (contact [Silicom](mailto:support@silicom-usa.com) for further information):
 
 ```console
-$ get_timing_status 1 2 3 4 5
+$ get_timing_status 1 1 1 1 1
 
 Number of ports:    12
 
