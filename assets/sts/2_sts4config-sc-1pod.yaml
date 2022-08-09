@@ -1,0 +1,27 @@
+apiVersion: sts.silicom.com/v1alpha1
+kind: StsConfig
+metadata:
+  name: sc-1
+  namespace: silicom
+spec:
+  namespace: silicom
+  imageRegistry: quay.io/silicom
+  nodeSelector:
+    sts.silicom.com/config: "sc-1"
+  mode: T-TSC.8275.1
+  twoStep: 0
+  esmcMode: 2
+  ssmMode: 1
+  forwardable: 1
+  syncRecClkPort: 3
+  syncOption: 1
+  gnssSpec:
+    gnssSigGpsEn: 0
+  interfaces:
+    - ethName: enp138s0f2
+      holdoff: 500
+      synce: 1
+      mode: Slave
+      ethPort: 2
+      qlEnable: 1
+      ql: 4
