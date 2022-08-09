@@ -4,19 +4,16 @@ metadata:
   name: cyclictest-du4ldc1
   namespace: cyclictest
   annotations:
-    ### Disable CPU balance with CRIO (OCP 4.6.x)
-    cpu-load-balancing.crio.io: "true"
-    ### Correct annotations for OCP 4.7.x
-    # cpu-load-balancing.crio.io: "disable"
-    # irq-load-balancing.crio.io: "disable"
+    cpu-load-balancing.crio.io: "disable"
+    irq-load-balancing.crio.io: "disable"
 spec:
   # Map to the correct performance class in the cluster (from PAO)
   runtimeClassName: performance-ran-du-ldc1-smci04-profile0
   restartPolicy: Never
   containers:
   - name: container-perf-tools
-    image: quay.io/jianzzha/perf-tools:latest
-    imagePullPolicy: IfNotPresent
+    image: altiostar-registry.cars.lab:5000/cyclictest
+    imagePullPolicy: Always
     resources:
       # NOTE: Requests and limits MUST be identical for the Pod to be assigned to the QoS Guaranteed class
       requests:
@@ -27,14 +24,14 @@ spec:
         cpu: "50"
     env:
     - name: GIT_URL
-      value: "https://github.com/redhat-nfvpe/container-perf-tools.git"
+      value: "false"
     - name: tool
       value: "cyclictest"
     - name: rt_priority
       value: "95"
     - name: DURATION
-      value: "10h"
-    - name: INterval
+      value: "24h"
+    - name: INTERVAL
       value: "100"
       # To report SMI include flag here
       #value: "100 -smi"
@@ -58,6 +55,6 @@ spec:
     hostPath:
       path: /dev/cpu_dma_latency
   nodeSelector:
-    node-role.kubernetes.io/ran-du-fec17-smci01: ""
+    node-role.kubernetes.io/ran-du-ldc1-smci04: ""
 # Use NodeName to select a node to execute cyclic test
   nodeName: du4-ldc1
