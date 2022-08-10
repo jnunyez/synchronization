@@ -280,7 +280,7 @@ EOF
 * Also, for a full listing of possible Gnss configuration parameters and values in `gnssSpec` field within `StsConfig` CR:
 
 ```console
-# oc explain StsConfig.spec.GnssSpec
+# oc explain StsConfig.spec.gnssSpec
 ```
 
 After deploying the StsConfig CR, we can examine the set of pods present in `silicom` namespace:
@@ -305,7 +305,7 @@ sts-plugin-s2kst                          1/1     Running   4          2d17h
 
 The pods above represent the timing solution for T-GM of a node labeled `gm-1`. The diagram below illustrates the resulting Silicom Timing Synchronization stack deployment in the OpenShift worker node equipped with an STS card.
 
-![Timing Stack](imgs/tgm.png)
+![Timing Stack](imgs/tgm-1pod.png)
 
 <figcaption>
 
