@@ -1,3 +1,4 @@
+# du3-ldc1
 apiVersion: sts.silicom.com/v1alpha1
 kind: StsConfig
 metadata:
@@ -13,22 +14,22 @@ spec:
   esmcMode: 2
   ssmMode: 1
   forwardable: 1
-  synceRecClkPort: 3
+  synceRecClkPort: 4
   syncOption: 1
   gnssSpec:
     gnssSigGpsEn: 1
   interfaces:
-    - ethName: enp138s0f2
+    - ethName: enp81s0f3
       synce: 1
       holdoff: 500
       mode: Slave
-      ethPort: 3
+      ethPort: 4
       qlEnable: 1
       ql: 2
-    - ethName: enp138s0f1
+    - ethName: enp81s0f2
       synce: 1
       holdoff: 500
       mode: Master
-      ethPort: 2
+      ethPort: 3
       qlEnable: 1
       ql: 4

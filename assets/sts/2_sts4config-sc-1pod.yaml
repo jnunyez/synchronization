@@ -22,6 +22,6 @@ spec:
       holdoff: 500
       synce: 1
       mode: Slave
-      ethPort: 2
+      ethPort: 3
       qlEnable: 1
       ql: 4
