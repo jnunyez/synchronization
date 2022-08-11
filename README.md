@@ -41,7 +41,7 @@ T-BC, T-TSC, and T-GM functionality can be implemented using specific NICs with 
 
 Before we proceed to the installation of the Silicom Timing Synchronization Operator ensure you have:
 
-- [OpenShift Container Platform 4.8][7]. In particular, we used OpenShift 4.8.29 with at least 1 baremetal worker node.
+- [OpenShift Container Platform 4.8][7] or [OpenShift Container Platform 4.10][]. In particular, we used OpenShift 4.8.36 and repeated all the experimentation with OpenShift 4.10.16. In both cases at least 1 baremetal worker node is needed.
 
 - Terminal environment with [oc][8] binary installed.
 
@@ -146,7 +146,7 @@ Now that the card has been properly installed and it is receiving proper GNSS da
 
 #### Create namespace
 
-We first create a namespace from the Web Console. Go to **Administration->Namespaces** and click
+We first create a namespace (e.g., silicom namespace) from the Web Console. Go to **Administration->Namespaces** and click
 **Create Namespace**:
 
   * select *No additional labels* in **Labels**
@@ -162,7 +162,7 @@ We first create a namespace from the Web Console. Go to **Administration->Namesp
 
 #### Install Node Feature Discovery Operator
 
-We proceed to install the Node Feature Discovery Operator in a generic namespace, for instance `openshift-operators`:
+In OpenShift 4.8 we can proceed to install the Node Feature Discovery Operator in a generic namespace, for instance `openshift-operators`:
 
   * select *stable* as **Update channel**
   * select *All namespaces on the cluster* as **Installation mode**
@@ -176,6 +176,13 @@ We proceed to install the Node Feature Discovery Operator in a generic namespace
 **Figure 5** Install Node Feature Discovery (NFD) Operator.
 
 </figcaption>
+
+For OpenShift 4.10, we recommend to install the Node Feature Discovery Operator in the specific namespace where the Silicom Timing Synchronization Operator will be installed, for instance `silicom` namespace:
+
+  * select *stable* as **Update channel**
+  * select *A specific namespace on the cluster* as **Installation mode**
+  * select *silicom* namespace as **Installed Namespace**  
+  * select *Automatic* as **Update approval**
 
 #### Install Silicom Timing Synchronization Operator
 By means of the OpenShift Web Console, install the Silicom Timing Synchronization Operator in the `silicom` namespace:
@@ -523,3 +530,4 @@ Special thanks for their constructive insights to:
 [12]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands
 [13]: https://www.itu.int/rec/T-REC-G.8275.1/recommendation.asp?lang=en&parent=T-REC-G.8275.1-202003-I
 [14]: https://www.redhat.com/en/technologies/cloud-computing/quay
+[15]: https://docs.openshift.com/container-platform/4.10/welcome/index.html
