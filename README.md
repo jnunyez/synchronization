@@ -162,7 +162,7 @@ We first create a namespace (e.g., silicom namespace) from the Web Console. Go t
 
 #### Install Node Feature Discovery Operator
 
-In OpenShift 4.8 we can proceed to install the Node Feature Discovery Operator in a generic namespace, for instance `openshift-operators`:
+In OpenShift 4.8 we can proceed to install the Node Feature Discovery Operator in a generic namespace, for instance `openshift-operators`. In OpenShift 4.8 console:
 
   * select *stable* as **Update channel**
   * select *All namespaces on the cluster* as **Installation mode**
@@ -177,7 +177,7 @@ In OpenShift 4.8 we can proceed to install the Node Feature Discovery Operator i
 
 </figcaption>
 
-For OpenShift 4.10, we recommend to install the Node Feature Discovery Operator in the specific namespace where the Silicom Timing Synchronization Operator will be installed, for instance `silicom` namespace:
+For OpenShift 4.10, we install the Node Feature Discovery Operator in the specific namespace where the Silicom Timing Synchronization Operator will be installed, for instance `silicom` namespace. In OpenShift 4.10 console:
 
   * select *stable* as **Update channel**
   * select *A specific namespace on the cluster* as **Installation mode**
