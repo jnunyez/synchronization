@@ -4,6 +4,4 @@ metadata:
   name: sts-operator-config
   namespace: silicom
 spec:
-  images: {}
-  sro:
-    build: false
+  images:
