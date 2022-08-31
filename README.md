@@ -41,7 +41,7 @@ T-BC, T-TSC, and T-GM functionality can be implemented using specific NICs with 
 
 Before we proceed to the installation of the Silicom Timing Synchronization Operator ensure you have:
 
-- [OpenShift Container Platform 4.8][7] or [OpenShift Container Platform 4.10][]. In particular, we used OpenShift 4.8.36 and repeated all the experimentation with OpenShift 4.10.16. In both cases at least 1 baremetal worker node is needed.
+- [OpenShift Container Platform 4.8][7] or [OpenShift Container Platform 4.10][15]. In particular, we used OpenShift 4.8.36 and repeated all the experimentation with OpenShift 4.10.20. In both cases we used three control plane nodes and one baremetal worker node.
 
 - Terminal environment with [oc][8] binary installed.
 
@@ -214,9 +214,7 @@ metadata:
   name: sts-operator-config
   namespace: silicom
 spec:
-  images: {}
-  sro:
-    build: false
+  images:
 EOF
 ```  
 This will trigger the Operator to instantiate a Node Feature Discovery (NFD) Custom Resource (CR), which will detect worker nodes physically equipped with a Silicom Timing Synchronization card. This CR is consumed by the [`NFD Operator`][3]. Note that the Silicom Timing Synchronization Operator requires the presence of the [`NFD Operator`][3] watching for the NFD CRs that will be created by the Silicom Timing Synchronization Operator after the creation of an `StsOperatoConfig` CR. 
@@ -235,7 +233,7 @@ Now we proceed to configure the baremetal worker node `du4-ldc1` as Telecom Gran
 
 ### Label Grandmaster Node
 
-Add a node label `gm-1` in the worker node that has GPS cable connected to the (i.e., in our case worker node named `du4-ldc1`).
+Add a node label `sts.silicom.com/config=gm-1` in the worker node with GPS cable connected to the Silicom Timing Synchornization card. In our case our baremetal worker node name is `du4-ldc1`:
 
 ```console
 # oc label node du4-ldc1 sts.silicom.com/config="gm-1"
@@ -243,8 +241,8 @@ Add a node label `gm-1` in the worker node that has GPS cable connected to the (
 
 ### Instantiate StsConfig CR
 
-Create a StsConfig CR object to provision the desired Telecom PTP profile [T-GM.8275.1][13] focused on phase/timing synchronization with full support from the network. 
-Note that by means of `nodeSelector` we are explicitly constrainig the nodes in the cluster where to provision the Telecom PTP profile to those nodes with `sts.silicom.com/config=gm-1`.
+Create a StsConfig CR object to provision the desired Telecom PTP profile [T-GM.8275.1][13] focused on phase/timing synchronization with full timing support from the network. 
+Note in the StsConfig below the field `nodeSelector` to constrain the nodes in the cluster where to provision the Telecom PTP profile to those nodes labelled with `sts.silicom.com/config=gm-1`.
 
 ```yaml
 # cat <<EOF | oc apply -f -
@@ -290,27 +288,14 @@ EOF
 # oc explain StsConfig.spec.gnssSpec
 ```
 
-After deploying the StsConfig CR, we can examine the set of pods present in `silicom` namespace:
+After deploying the StsConfig CR, check for the new pod in the `silicom` namespace:
 
 ```console
-# oc get pods -n silicom          
-gm-1-du4-ldc1-tsync-fwcqq                 5/5     Running   0          2d18h
-nfd-master-d75lc                          1/1     Running   0          2d19h
-nfd-master-dxshn                          1/1     Running   0          2d19h
-nfd-master-stc7b                          1/1     Running   0          2d19h
-nfd-worker-4sbtz                          1/1     Running   0          2d19h
-nfd-worker-72w9s                          1/1     Running   0          2d19h
-nfd-worker-blj7t                          1/1     Running   0          2d19h
-nfd-worker-ltcg7                          1/1     Running   0          2d19h
-nfd-worker-tz9rt                          1/1     Running   0          2d19h
-nfd-worker-vsrxh                          1/1     Running   2          2d17h
-nfd-worker-wlm46                          1/1     Running   0          2d19h
-sts-controller-manager-7c988554b7-7mtv7   2/2     Running   0          2d19h
-sts-plugin-mt8n7                          1/1     Running   1          2d19h
-sts-plugin-s2kst                          1/1     Running   4          2d17h
+# oc get pods -n silicom | grep gm-1         
+gm-1-du4-ldc1-tsync-fwcqq                 5/5     Running   0          20s
 ```
 
-The pods above represent the timing solution for T-GM of a node labeled `gm-1`. The diagram below illustrates the resulting Silicom Timing Synchronization stack deployment in the OpenShift worker node equipped with an STS card.
+The pod above includes the timing solution for T-GM clock. The diagram below illustrates the resulting Silicom Timing Synchronization stack deployment in the OpenShift worker node equipped with an STS card.
 
 ![Timing Stack](imgs/tgm-1pod.png)
 
@@ -335,23 +320,30 @@ As showed in the Figure above the STSConfig CR instance triggers the creation of
 
 ## Telecom Grandmaster Operation <a name="stsops"></a>
 
-The timing stack is deployed in our OpenShift cluster, how do we know it is synchronizing the clock in the Silicom Timing Synchronization card? It is easy. The timing synchronization software stack exposes an API based on gRPC to query timing status information.
+The timing stack is deployed in our OpenShift worker node, how do we know it is synchronizing the Hardware Clock in the Silicom Timing Synchronization card? It is easy. The timing synchronization software stack exposes an API based on gRPC to query timing status information.
 
-1. Execute a gRPC client in the container exposing the gRPC API. This command below launches gRPC client:
+1. We recommend first (if you haven't done it yet) to check that your Silicom Time Synchronization card is receiving GPS timing and location data. We can do that by getting the logs of the `gpsd` container:
+
+```console
+# oc logs -f gm-1-du4-ldc1-tsync-fwcqq -c du4-ldc1-gpsd
+gpsd:CLIENT: => client(1): {"class":"TPV","device":"/dev/ttyACM0","status":7,"mode":3,"time":"2022-08-31T14:23:53.000Z","leapseconds":18,"ept":0.005,"lat":32.943074900,"lon":-96.994520700,"altHAE":143.6240,"altMSL":168.7690,"alt":168.7690,"epx":14.827,"epy":12.311,"epv":2.501,"track":0.0000,"magtrack":3.1366,"magvar":3.1,"speed":0.000,"climb":0.000,"eps":0.01,"epc":5.00,"geoidSep":-28.762,"eph":3.537,"sep":1899.810}
+``` 
+
+2. Execute a gRPC client in the container exposing the gRPC API. This command below launches gRPC client:
 
 ```console
 # oc exec -it  gm-1-du4-ldc1-tsync-fwcqq -c du4-ldc1-grpc-tsyncd -- tsynctl_grpc
 Tsynctl gRPC Client v1.1.2
 ```
 
-2. You can now check the status of the GM clock in the Silicom network card. `LOCKED` state means that the PTP HW clock in the STS card is aligned to the received timing/phase information from the GNSS receiver: 
+3. You can now check the status of the GM clock in the Silicom network card. `LOCKED` state means that the PHC clock in the STS card is aligned to the received timing/phase information from the GNSS receiver: 
 
 ```console
 $ get_clk_class
 Clock Class: 6, LOCKED
 ```
 
-2. For additional info type `help` at the `tsynctl_grpc` prompt:
+4. For additional info type `help` at the `tsynctl_grpc` prompt:
 
 ```console
 $ help
@@ -458,8 +450,7 @@ GNSS Fix Validity:    true
 GNSS Latitude:      329430555
 GNSS Longitude:     3325022222
 GNSS Height:      142689
-```
-
+``` 
 
 ## Uninstalling the Silicom Timing Synchronization Operator from the embedded OperatorHub <a name="uninstalling"></a>
 
@@ -475,38 +466,19 @@ Uninstalling the Operator can be done from the OperatorHub console in your OpenS
 
 You will see how the time synchronization service is still active because CRs we previously provisioned and the physical card are still present. The CRDs `StsNodes`, `StsOperatorConfig`, and `StsConfig` keep the created GM role active.
 
-```console
-$ oc get stsnodes du4-ldc1
-.
-.
-gpsStatus:
-.
-.
- tsyncStatus:
-  mode: PTP Master Mode
-  status: Normal Status
-```
 
 Note that although the Operator is no longer installed, the time synchronization service is still detecting a GPS device, and `du4-ldc1` is still acting as master node. This is common amongst Operators in general to prevent a data loss situation or outages in case the operator is uninstalled unintentionally. This policy is of special interest in our case since time synchronization is a critical service to keep active in 5G deployments. To fully uninstall the Silicom Timing Synchronization stack, it is needed to:
 
-* Delete the pods associated to the Silicom Timing Synchronization stack.
+* Delete all the objects associated to the Silicom Timing Synchronization stack.
 
 ```console
-$ oc delete stsconfig gm-1
-```
-* Delete the CR that maintains stsplugin Daemonset.
-
-```console
-$ oc delete stsoperatorconfig sts-operator-config
-```
-* Delete the CR that maintains the nodes with a Silicom Timing Synchronization card.
-
-```console
-$ oc delete stsnode du4-ldc1
+# oc delete stsconfig gm-1
+# oc delete stsoperatorconfig sts-operator-config
+# oc delete stsnode du4-ldc1
 ```
 
 ## Wrap-up <a name="conclusion"></a>
-This post provided a detailed walk through of the installation, operation and un-installation of the recently released [certified Silicom Timing Synchronization Operator][5] for 5G synchronization in O-RAN deployments. By taking care of low-level hardware, this Operator does a really good job of abstracting details of managing both the Hardware NIC embedded accurate Hardware clock and Software Synchronization stack, so that the OpenShift Container Platform administrator does not have to be an expert in 5G synchronization and O-RAN. In future posts, we will focus on more complex and dynamic synchronization topology setups, including boundary clocks and slave clocks. The Silicom Timing Synchronization Operator can be used to self-manage more complex Timing Synchronization topologies including T-GM,T-BC, and T-TSC (more information on those modes will be included in following posts).
+This post provided a detailed walk through of the installation, operation and un-installation of the recently released [certified Silicom Timing Synchronization Operator][5] for 5G synchronization in O-RAN deployments. By taking care of low-level hardware, this Operator does a really good job abstracting details of managing both the Hardware NIC and PTP/SyncE Software Synchronization stack, so that the OpenShift Container Platform administrator does not have to be an expert in 5G synchronization and O-RAN. In future posts, we will focus on more complex and dynamic synchronization PTP topology setups, including Boundary Clocks (BC) and Ordinary Clocks (OC) ports. The Silicom Timing Synchronization Operator can be used to self-manage more complex Timing Synchronization topologies including T-GM,T-BC, and T-TSC (more information on those modes will be included in following posts).
 
 ## Acknowledgements
 
