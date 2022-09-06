@@ -473,8 +473,9 @@ Note that although the Operator is no longer installed, the time synchronization
 
 ```console
 # oc delete stsconfig gm-1
-# oc delete stsoperatorconfig sts-operator-config
 # oc delete stsnode du4-ldc1
+# oc delete stsoperatorconfig sts-operator-config
+# oc delete nodefeaturediscovery nfd-sts-silicom
 ```
 
 ## Wrap-up <a name="conclusion"></a>

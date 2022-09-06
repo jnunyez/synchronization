@@ -1,0 +1,32 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: silicom
+  namespace: silicom
+spec:
+  targetNamespaces:
+  - silicom
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  labels:
+  name: nfd-operator-subs
+  namespace: silicom
+spec:
+  channel: stable
+  installPlanApproval: Automatic
+  name: nfd
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: silicom-sts-operator-subs
+  namespace: silicom
+spec:
+  channel: stable
+  name: silicom-sts-operator
+  source: certified-operators
+  sourceNamespace: openshift-marketplace
