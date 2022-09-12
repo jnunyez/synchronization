@@ -41,7 +41,7 @@ T-BC, T-TSC, and T-GM functionality can be implemented using specific NICs with 
 
 Before we proceed to install the Silicom Time Sync Operator, ensure that you have:
 
-- [OpenShift Container Platform 4.8][6] or [OpenShift Container Platform 4.10][14]. In particular, we used OpenShift 4.8.36 and repeated all the experimentation with OpenShift 4.10.20. In both cases we used three control plane nodes and one baremetal worker node.
+- [OpenShift Container Platform 4.10][14]. 
 
 - Terminal environment with [oc][7] binary installed.
 
@@ -68,7 +68,7 @@ Before we proceed to install the Silicom Time Sync Operator, ensure that you hav
 
 ## Install Silicom Time Sync Operator <a name="installation"></a>
 
-There are two distinct type of entities the operator handles: one is the Silicom Time Sync physical card, and the other is the Silicom TimeSync software stack. The certified Operator dramatically simplifies the deployment, configuration, and management of the Silicom Time Sync physical cards and the TimeSync software.
+There are two distinct type of entities the operator handles: one is the Silicom Time Sync physical card, and the other is the Silicom Time Sync software stack. The certified Operator dramatically simplifies the deployment, configuration, and management of the Silicom Time Sync physical cards and the Time Sync software.
 
 #### Install Silicom Time Sync (STS) Card in Worker
 
@@ -162,22 +162,7 @@ We first create a namespace (e.g., silicom namespace) from the Web Console. Go t
 
 #### Install Node Feature Discovery Operator
 
-In OpenShift 4.8 we can proceed to install the Node Feature Discovery Operator in a generic namespace, for instance `openshift-operators`. In OpenShift 4.8 console:
-
-  * select *stable* as **Update channel**
-  * select *All namespaces on the cluster* as **Installation mode**
-  * select *openshift-operators* namespace as **Installed Namespace**  
-  * select *Automatic* as **Update approval**
-
-![operatornfd](imgs/01_installnfd.png)
-
-<figcaption>
-
-**Figure 5** Install Node Feature Discovery (NFD) Operator.
-
-</figcaption>
-
-For OpenShift 4.10, we install the Node Feature Discovery Operator in the specific namespace where the Silicom Time Sync Operator will be installed, for instance `silicom` namespace. In the OpenShift 4.10 console:
+In OpenShift 4.10, we install the Node Feature Discovery Operator in the specific namespace where the Silicom Time Sync Operator will be installed, for instance `silicom` namespace. In the OpenShift 4.10 console:
 
   * select *stable* as **Update channel**
   * select *A specific namespace on the cluster* as **Installation mode**
@@ -187,7 +172,7 @@ For OpenShift 4.10, we install the Node Feature Discovery Operator in the specif
 #### Install Silicom Time Sync Operator
 By means of the OpenShift Web Console, install the STS Operator in the `silicom` namespace:
 
-  * select *alpha* as **Update channel**
+  * select *stable* as **Update channel**
   * select *A specific namespace on the cluster* as **Installation mode**
   * select *silicom* namespace as **Installed Namespace**  
   * select *Automatic* as **Update approval**
@@ -200,11 +185,11 @@ By means of the OpenShift Web Console, install the STS Operator in the `silicom`
 
 </figcaption>
 
-Once the Operator is installed with the Custom Resource Definition (CRD)s exposed in the figure above, we proceed to instantiate the Custom Resources (CRs). Note that when you install an Operator you are not installing the software services managed by that Operator (in this case the Silicom TimeSync software stack).
+Once the Operator is installed with the Custom Resource Definition (CRD)s exposed in the figure above, we proceed to instantiate the Custom Resources (CRs). Note that when you install an Operator you are not installing the software services managed by that Operator (in this case the Silicom Time Sync software stack).
 
 #### Install StsOperatorConfig CR
 
-Create the StsOperatorConfig CR object to set the desired timing stack configuration. Apply the following CR:
+Create the StsOperatorConfig CR object to set the desired Silicom Time stack configuration. Apply the following CR:
 
 ```yaml
 # cat <<EOF | oc apply -f -
@@ -217,7 +202,7 @@ spec:
   images:
 EOF
 ```  
-This will trigger the Operator to instantiate a Node Feature Discovery (NFD) Custom Resource (CR), which will detect worker nodes physically equipped with a STS card. This CR is consumed by the [`NFD Operator`][2]. Note that the STS Operator requires the presence of the [`NFD Operator`][2] watching for the NFD CRs that will be created by the STS Operator after the creation of an `StsOperatoConfig` CR.
+This will trigger the Operator to instantiate a Node Feature Discovery (NFD) Custom Resource (CR), which will detect worker nodes physically equipped with a STS card. This CR is consumed by the [`NFD Operator`][2]. Note, as described previously, that the STS Operator requires the presence of the [`NFD Operator`][2] watching for the NFD CRs that will be created by the STS Operator after the creation of an `StsOperatoConfig` CR.
 Here we have one node with an STS card, thus the node should have been automatically labeled by NFD with `feature.node.kubernetes.io/custom-silicom.sts.devices=true`. We can check whether the aforementioned label is present in `du4-ldc1` node:
 
 ```console
@@ -276,7 +261,7 @@ spec:
 EOF                 
 ```
 
-* For a full listing of the possible Silicom TimeSync configuration parameters and their possible values in `StsConfig` CR:
+* For a full listing of the possible Silicom Time Sync configuration parameters and their possible values in `StsConfig` CR:
 
 ``` console
 # oc explain StsConfig.spec
@@ -295,7 +280,7 @@ After deploying the StsConfig CR, check for the new pod in the `silicom` namespa
 gm-1-du4-ldc1-tsync-fwcqq                 5/5     Running   0          20s
 ```
 
-The pod above includes the timing solution for T-GM clock. The diagram below illustrates the resulting Silicom TimeSync software deployment in the OpenShift worker node equipped with an STS card.
+The pod above includes the timing solution for T-GM clock. The diagram below illustrates the resulting Silicom Time Sync software deployment in the OpenShift worker node equipped with an STS card.
 
 ![Timing Stack](imgs/tgm-1pod.png)
 
@@ -313,14 +298,14 @@ As showed in the Figure above, the STSConfig CR instance triggers the creation o
 
 - `gpsd` container reads and distributes the timing/phase/frequency information gathered from the GNSS receiver.
 
-- `tsync_extts`, aligns the PTP Hardware clock to the external timing information gathered from the GNSS receiver.
+<!--`tsync_extts`, aligns the PTP Hardware clock to the external timing information gathered from the GNSS receiver.-->
 
 - `phc2sys` that aligns the worker node system clock to the PTP Hardware clock embedded in the STS card.
 
 
 ## Telecom Grandmaster Operation <a name="stsops"></a>
 
-The TimeSync stack is deployed in our OpenShift worker node, how do we know it is synchronizing the Hardware Clock in the Silicom Time Sync card? It is easy. The timing synchronization software stack exposes an API based on gRPC to query timing status information.
+The Silicom Time Sync stack is deployed in our OpenShift worker node. Now how do we know it is synchronizing the Hardware Clock in the Silicom Time Sync card? It is easy. The timing synchronization software stack exposes an API based on gRPC to query timing status information.
 
 1. We recommend first (if you haven't done it yet) to check that your STS card is receiving GPS timing and location data. We can do that by getting the logs of the `gpsd` container:
 
@@ -374,25 +359,25 @@ get_timing_stats  [params] - Get Timing statistics (requires registration)
 4. Register the gRPC client first via `register` command (register and deregister are commands to get access for Timing Info/ Timing Config related commands, contact [Silicom](mailto:support@silicom-usa.com) for further information):
 
 ```console
-$ register 1 1 1 1 1
+$ register 1 2 3 4 5
 msId:           1
-msInstance:     1
-appId:          1
-basebandId:     1
-remoteAppId:    1
+msInstance:     2
+appId:          3
+basebandId:     4
+remoteAppId:    5
 ```
 
 5. Once the gRPC client is registered, it can call any timing commands with the registered set of parameters (contact [Silicom](mailto:support@silicom-usa.com) for further information):
 
 ```console
-$ get_timing_status 1 1 1 1 1
+$ get_timing_status 1 2 3 4 5
 
 Number of ports:    12
 
 msId:               1
-msInstance:         1
-appId:              1
-basebandId:         1
+msInstance:         2
+appId:              3
+basebandId:         4
 
 Timing Status:
 ==============
@@ -479,7 +464,7 @@ Note that although the Operator is no longer installed, the time synchronization
 ```
 
 ## Wrap-up <a name="conclusion"></a>
-This post provided a detailed walk through of the installation, operation and un-installation of the recently released [certified Silicom Time Sync Operator][4] for 5G synchronization in O-RAN deployments. By taking care of low-level hardware, this Operator does a really good job abstracting details of managing both the Hardware NIC and PTP/SyncE Software Synchronization stack, so that the OpenShift Container Platform administrator does not have to be an expert in 5G synchronization and O-RAN. In future posts, we will focus on more complex and dynamic synchronization PTP topology setups, including Boundary Clocks (BC) and Ordinary Clocks (OC) ports. The Silicom Time Sync Operator can be used to self-manage more complex Timing Synchronization topologies including T-GM, T-BC, and T-TSC (more information on those modes will be included in following posts).
+This post provided a detailed walk through of the installation, operation and un-installation of the recently released [certified Silicom Time Sync Operator][4] for 5G synchronization in O-RAN deployments. By taking care of low-level hardware, this Operator does a really good job abstracting details of managing both the Hardware NIC and PTP/SyncE Software Synchronization protocols, so that the OpenShift Container Platform administrator does not have to be an expert in 5G synchronization and O-RAN. In future posts, we will focus on more complex and dynamic synchronization PTP topology setups, including Boundary Clocks (BC) and Ordinary Clocks (OC) ports. The Silicom Time Sync Operator can be used to self-manage more complex Timing Synchronization topologies including T-GM, T-BC, and T-TSC (more information on those modes will be included in following posts).
 
 ## Acknowledgements
 
