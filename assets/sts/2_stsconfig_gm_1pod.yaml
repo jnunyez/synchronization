@@ -1,3 +1,4 @@
+#du4-ldc1 caravan
 apiVersion: sts.silicom.com/v1alpha1
 kind: StsConfig
 metadata:

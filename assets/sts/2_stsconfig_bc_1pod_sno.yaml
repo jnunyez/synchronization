@@ -1,3 +1,4 @@
+# du2sno
 apiVersion: sts.silicom.com/v1alpha1
 kind: StsConfig
 metadata:
@@ -23,5 +24,12 @@ spec:
       holdoff: 500
       mode: Master
       ethPort: 3
+      qlEnable: 1
+      ql: 4
+    - ethName: enp138s0f0
+      synce: 1
+      holdoff: 500
+      mode: Master
+      ethPort: 1
       qlEnable: 1
       ql: 4
