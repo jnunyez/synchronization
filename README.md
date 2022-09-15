@@ -41,11 +41,11 @@ T-BC, T-TSC, and T-GM functionality can be implemented using specific NICs with 
 
 Before we proceed to install the Silicom Time Sync Operator, ensure that you have:
 
-- [OpenShift Container Platform 4.10][14]. 
+- A fresh cluster with [OpenShift Container Platform 4.10][6] installed. 
 
 - Terminal environment with [oc][7] binary installed.
 
-- A [certified Silicom Time Sync (STS) physical card][8]. In particular, either an [STS4][9], or an [STS2][10] card physically installed in one of your baremetal worker nodes.  
+- A [certified Silicom Time Sync (STS) physical card][6]. For example, an [STS2][10] card physically installed in one of your baremetal worker nodes. Another STS physical card candidate could be [STS4][9] card.
 
 ![Silicom Card](imgs/00_card.jpg)
 
@@ -277,10 +277,10 @@ After deploying the StsConfig CR, check for the new pod in the `silicom` namespa
 
 ```console
 # oc get pods -n silicom | grep gm-1         
-gm-1-du4-ldc1-tsync-fwcqq                 5/5     Running   0          20s
+gm-1-du4-ldc1-tsync-zqkh6                 4/4     Running   0             4h
 ```
 
-The pod above includes the timing solution for T-GM clock. The diagram below illustrates the resulting Silicom Time Sync software deployment in the OpenShift worker node equipped with an STS card.
+The pod showed above includes the timing solution for T-GM clock functionality. As can be observed, the pod is composed by four containers. The diagram below illustrates the resulting Silicom Time Sync software deployment based on one pod composed by four containers in the OpenShift worker node equipped with an STS card.
 
 ![Timing Stack](imgs/tgm-1pod.png)
 
@@ -311,14 +311,14 @@ The Silicom Time Sync stack is deployed in our OpenShift worker node. Now how do
 
 ```console
 # oc logs -f gm-1-du4-ldc1-tsync-fwcqq -c du4-ldc1-gpsd
-gpsd:CLIENT: => client(1): {"class":"TPV","device":"/dev/ttyACM0","status":7,"mode":3,"time":"2022-08-31T14:23:53.000Z","leapseconds":18,"ept":0.005,"lat":32.943074900,"lon":-96.994520700,"altHAE":143.6240,"altMSL":168.7690,"alt":168.7690,"epx":14.827,"epy":12.311,"epv":2.501,"track":0.0000,"magtrack":3.1366,"magvar":3.1,"speed":0.000,"climb":0.000,"eps":0.01,"epc":5.00,"geoidSep":-28.762,"eph":3.537,"sep":1899.810}
+gpsd:CLIENT: => client(0): {"class":"TPV","device":"/dev/ttyACM0","status":7,"mode":3,"time":"2022-09-15T15:44:56.000Z","leapseconds":18,"ept":0.005,"lat":32.943076500,"lon":-96.994498200,"altHAE":140.8500,"altMSL":165.9950,"alt":165.9950,"epx":4.807,"epy":5.113,"epv":0.676,"track":333.0466,"magtrack":336.1832,"magvar":3.1,"speed":0.000,"climb":-0.050,"eps":5.81,"epc":1.38,"geoidSep":-28.762,"eph":0.956,"sep":1899.810}
 ```
 
 2. Execute a gRPC client in the container exposing the gRPC API. This command below launches gRPC client:
 
 ```console
 # oc exec -it  gm-1-du4-ldc1-tsync-fwcqq -c du4-ldc1-grpc-tsyncd -- tsynctl_grpc
-Tsynctl gRPC Client v1.1.2
+Tsynctl gRPC Client v1.1.3
 ```
 
 3. You can now check the status of the GM clock in the Silicom network card. `LOCKED` state means that the PHC clock in the STS card is aligned to the received timing/phase information from the GNSS receiver:
@@ -371,13 +371,12 @@ remoteAppId:    5
 
 ```console
 $ get_timing_status 1 2 3 4 5
+Please wait...
 
-Number of ports:    12
-
-msId:               1
-msInstance:         2
-appId:              3
-basebandId:         4
+msId:       1
+msInstance:     2
+appId:        3
+basebandId:     4
 
 Timing Status:
 ==============
@@ -385,56 +384,56 @@ Clock Mode:     GM Clock
 
 Clock Status:
 =============
-Sync Status:      Locked
-PTP Lock Status:    Unknown
+Sync Status:          Locked
+PTP Lock Status:      Unknown
 Synce Lock Status:    Unknown
 Sync Failure Cause:   N/A
 
 PTP Data:
 =========
-Profile:      G_8275_1
-GM Clock ID:      00:E0:ED:FF:FE:F0:96:04
-Parent Clock ID:    00:E0:ED:FF:FE:F0:96:04
-Configured Clock Class:   248
+Profile:                G_8275_1
+GM Clock ID:            00:E0:ED:FF:FE:F0:96:04
+Parent Clock ID:        00:E0:ED:FF:FE:F0:96:04
+Configured Clock Class: 248
 Received Clock Class:   6
-PTP Interface 1:    
-PTP Port 1 Role:    Master
+PTP Interface 1:    enp81s0f0
+PTP Port 1 Role:    Unknown
 PTP Interface 2:    
-PTP Port 2 Role:    Master
-PTP Interface 3:    enp81s0f0
-PTP Port 3 Role:    Master
+PTP Port 2 Role:    Unknown
+PTP Interface 3:    
+PTP Port 3 Role:    Unknown
 PTP Interface 4:    
-PTP Port 4 Role:    Master
+PTP Port 4 Role:    Unknown
 PTP Interface 5:    
-PTP Port 5 Role:    Master
+PTP Port 5 Role:    Unknown
 PTP Interface 6:    
-PTP Port 6 Role:    Master
+PTP Port 6 Role:    Unknown
 PTP Interface 7:    
-PTP Port 7 Role:    Master
+PTP Port 7 Role:    Unknown
 PTP Interface 8:    
-PTP Port 8 Role:    Master
+PTP Port 8 Role:    Unknown
 PTP Interface 9:    
-PTP Port 9 Role:    Master
+PTP Port 9 Role:    Unknown
 PTP Interface 10:   
-PTP Port 10 Role:   Master
+PTP Port 10 Role:   Unknown
 PTP Interface 11:   
-PTP Port 11 Role:   Master
+PTP Port 11 Role:   Unknown
 PTP Interface 12:   
-PTP Port 12 Role:   Master
+PTP Port 12 Role:   Unknown
 
 SyncE Data:
 ===========
 SyncE Interface:    according to T-GM series SyncE Port Bit Mask value in tsyncd.conf file
-Clock Quality:      4
+Clock Quality:      2
 
 GNSS Data:
 ==========
-Number of satellites:   27
-GNSS Fix Type:      5
+Number of satellites: 27
+GNSS Fix Type:        5
 GNSS Fix Validity:    true
-GNSS Latitude:      329430555
-GNSS Longitude:     3325022222
-GNSS Height:      142689
+GNSS Latitude:        329430765
+GNSS Longitude:       3325022314
+GNSS Height:          140850
 ```
 
 ## Uninstalling the Silicom STS Operator from the embedded OperatorHub <a name="uninstalling"></a>
@@ -475,11 +474,11 @@ Special thanks to the following individuals for their feedback in the authoring 
 
 
 [1]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/
-[2]: https://docs.openshift.com/container-platform/4.9/hardware_enablement/psap-node-feature-discovery-operator.html
+[2]: https://docs.openshift.com/container-platform/4.10/hardware_enablement/psap-node-feature-discovery-operator.html
 [3]: https://smicro.eu/supermicro-sys-210p-frdn6t-1
 [4]: https://catalog.redhat.com/software/operators/detail/622b5609f8469c36ac475619
 [5]: https://www.o-ran.org/
-[6]: https://docs.openshift.com/container-platform/4.8/welcome/index.html
+[6]: https://docs.openshift.com/container-platform/4.10/welcome/index.html
 [7]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.9/html/cli_tools/openshift-cli-oc
 [8]: https://catalog.redhat.com/hardware/search?p=1&c_catalog_channel=Component&q=silicom
 [9]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/#:~:text=Silicom's%20STS4%20TimeSync%20card%20capable,in%20Master%20and%20Slave%20mode
@@ -487,4 +486,3 @@ Special thanks to the following individuals for their feedback in the authoring 
 [11]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands
 [12]: https://www.itu.int/rec/T-REC-G.8275.1/recommendation.asp?lang=en&parent=T-REC-G.8275.1-202003-I
 [13]: https://www.redhat.com/en/technologies/cloud-computing/quay
-[14]: https://docs.openshift.com/container-platform/4.10/welcome/index.html
