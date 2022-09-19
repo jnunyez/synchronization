@@ -185,7 +185,14 @@ By means of the OpenShift Web Console, install the STS Operator in the `silicom`
 
 </figcaption>
 
-Once the Operator is installed with the Custom Resource Definition (CRD)s exposed in the figure above, we proceed to instantiate the Custom Resources (CRs). Note that when you install an Operator you are not installing the software services managed by that Operator (in this case the Silicom Time Sync software stack).
+You can check through the CLI using `oc get csv` command the specific version and status of the installation:
+
+```console
+NAME                                 DISPLAY                           VERSION               REPLACES                  PHASE
+silicom-sts-operator.v0.1.0          Silicom STS Operator              0.1.0                                           Succeeded
+```
+
+Once the operator is installed with the Custom Resource Definition (CRD)s exposed in the figure above, we proceed to instantiate the Custom Resources (CRs). Note that when you install an Operator you are not installing the software services managed by that Operator (in this case the Silicom Time Sync software stack). 
 
 #### Install StsOperatorConfig CR
 
@@ -435,6 +442,18 @@ GNSS Latitude:        329430765
 GNSS Longitude:       3325022314
 GNSS Height:          140850
 ```
+
+Note the importance of attaining GNSS Fix Type equal to 5. The GNSS fix type determines the technique used by the GPS receiver to determine its location and timing information. A value of 5 indicates a time-only fix. This is the case where you have a fixed/static location adn the receiver is only used for solving time. Time-only fix is a pre-requisite for `tsyncd` to get PTP HW clock of the T-GM card in a Locked status.
+
+<!--
+## Telecom Boundary Clock Provisioning <a name="stsconfigBCprov"></a>
+
+## Telecom Boundary Clock Operation <a name="stsconfigBCop"></a>
+
+## Telecom Ordinay Clock Provisioning <a name="stsconfigOCprov"></a>
+
+## Telecom Ordinary Clock Operation <a name="stsconfigOCop"></a>
+-->
 
 ## Uninstalling the Silicom STS Operator from the embedded OperatorHub <a name="uninstalling"></a>
 
