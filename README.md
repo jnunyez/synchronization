@@ -335,7 +335,36 @@ $ get_clk_class
 Clock Class: 6, LOCKED
 ```
 
-4. For additional info type `help` at the `tsynctl_grpc` prompt:
+4. To check the status of the GNSS receiver:
+
+```console
+$ get_gnss_status 
+GNSS Current Status:
+====================
+    GNSS satellites visible:      36
+    GNSS satellites used:         30
+    GNSS Type of Fix:             5 - Time-only fix
+    Survey-in validity flag:      valid
+    Survey-in progress flag:      0
+    GNSS 1PPS error monitor:      within limits
+    Time Accuracy Estimate:       2
+    Noise Level L1:               83
+    AGC Monitor L1:               4914 (60.0%)
+    CW jamming indicator L1:      6 (2.4%)
+    CW jamming state L1:          unknown
+    Noise Level L2:               47
+    AGC Monitor L2:               6318 (77.1%)
+    CW jamming indicator L2:      21 (8.2%)
+    CW jamming state L2:          unknown
+    GNSS cable state:             connected
+    GNSS latitude:                329430694
+    GNSS longitude:               3325022308
+    GNSS height:                  140648
+    Spoofing detection state:     no spoofing indicated
+```
+Note the importance of attaining `GNSS Type of Fix: 5 - Time-only fix`. The GNSS fix type determines the technique used by the GPS receiver to calculate location and timing information. A value of 5 indicates a time-only fix. This is the case where the receiver is only used for solving time. Time-only fix is a requirement for `tsyncd` to get PTP HW clock of the T-GM card in a Locked status. 
+
+5. For additional info type `help` at the `tsynctl_grpc` prompt:
 
 ```console
 $ help
@@ -363,7 +392,7 @@ get_timing_stats  [params] - Get Timing statistics (requires registration)
 .
 ```
 
-4. Register the gRPC client first via `register` command (register and deregister are commands to get access for Timing Info/ Timing Config related commands, contact [Silicom](mailto:support@silicom-usa.com) for further information):
+6. Register the gRPC client first via `register` command (register and deregister are commands to get access for Timing Info/ Timing Config related commands, contact [Silicom](mailto:support@silicom-usa.com) for further information):
 
 ```console
 $ register 1 2 3 4 5
@@ -374,7 +403,7 @@ basebandId:     4
 remoteAppId:    5
 ```
 
-5. Once the gRPC client is registered, it can call any timing commands with the registered set of parameters (contact [Silicom](mailto:support@silicom-usa.com) for further information):
+7. Once the gRPC client is registered, it can call any timing commands with the registered set of parameters (contact [Silicom](mailto:support@silicom-usa.com) for further information):
 
 ```console
 $ get_timing_status 1 2 3 4 5
@@ -435,16 +464,13 @@ Clock Quality:      2
 
 GNSS Data:
 ==========
-Number of satellites: 27
+Number of satellites: 30
 GNSS Fix Type:        5
 GNSS Fix Validity:    true
 GNSS Latitude:        329430765
 GNSS Longitude:       3325022314
 GNSS Height:          140850
 ```
-
-Note the importance of attaining GNSS Fix Type equal to 5. The GNSS fix type determines the technique used by the GPS receiver to determine its location and timing information. A value of 5 indicates a time-only fix. This is the case where you have a fixed/static location adn the receiver is only used for solving time. Time-only fix is a pre-requisite for `tsyncd` to get PTP HW clock of the T-GM card in a Locked status.
-
 <!--
 ## Telecom Boundary Clock Provisioning <a name="stsconfigBCprov"></a>
 
