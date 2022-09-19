@@ -362,7 +362,7 @@ GNSS Current Status:
     GNSS height:                  140648
     Spoofing detection state:     no spoofing indicated
 ```
-Note the importance of attaining `GNSS Type of Fix: 5 - Time-only fix`. The GNSS fix type determines the technique used by the GPS receiver to calculate location and timing information. A value of 5 indicates a time-only fix. This is the case where the receiver is only used for solving time. Time-only fix is a requirement for `tsyncd` to get PTP HW clock of the T-GM card in a Locked status. 
+Note the importance of attaining `GNSS Type of Fix: 5 - Time-only fix`. The GNSS fix type determines the technique used by the GPS receiver to calculate location and timing information. A value of 5 indicates a time-only fix. This is the case where the receiver is only used for solving time. Time-only fix is a requirement for Silicom Time Synchronization solution to get PTP HW clock of the T-GM card in a Locked status. 
 
 5. For additional info type `help` at the `tsynctl_grpc` prompt:
 
