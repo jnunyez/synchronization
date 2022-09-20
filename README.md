@@ -471,15 +471,206 @@ GNSS Latitude:        329430765
 GNSS Longitude:       3325022314
 GNSS Height:          140850
 ```
-<!--
+
 ## Telecom Boundary Clock Provisioning <a name="stsconfigBCprov"></a>
+
+### Label Boundary Clock Node
+
+Add a node label `sts.silicom.com/config=bc-1` in the worker node with a Silicom Time Sync card. In our case our baremetal worker node name is `du3-ldc1`:
+
+```console
+# oc label node du3-ldc1 sts.silicom.com/config="bc-1"
+```
+
+### Instantiate StsConfig CR
+
+Create a StsConfig CR object to provision the desired Telecom PTP profile [T-GM.8275.1][12] focused on phase/timing synchronization with full timing support from the network.
+Note in the StsConfig below the field `nodeSelector` to constrain the nodes in the cluster where to provision the Telecom PTP profile to those nodes labelled with `sts.silicom.com/config=bc-1`.
+
+```yaml
+# cat <<EOF | oc apply -f -
+apiVersion: sts.silicom.com/v1alpha1
+kind: StsConfig
+metadata:
+  name: bc-1
+  namespace: silicom
+spec:
+  namespace: silicom
+  imageRegistry: quay.io/silicom
+  nodeSelector:
+    sts.silicom.com/config: "bc-1"
+  mode: T-BC-8275.1
+  twoStep: 0
+  esmcMode: 2
+  ssmMode: 1
+  forwardable: 1
+  synceRecClkPort: 4
+  syncOption: 1
+  gnssSpec:
+    gnssSigGpsEn: 0
+  interfaces:
+    - ethName: enp81s0f3
+      synce: 1
+      holdoff: 500
+      mode: Slave
+      ethPort: 4
+      qlEnable: 1
+      ql: 2
+    - ethName: enp81s0f2
+      synce: 1
+      holdoff: 500
+      mode: Master
+      ethPort: 3
+      qlEnable: 1
+      ql: 4
+EOF
+```
+Note here that `enp81s0f3` is configured as a Slave port, whereas `enp81s0f2` interface is configured as master port to feed other nodes in the synchronization hierarchy.
 
 ## Telecom Boundary Clock Operation <a name="stsconfigBCop"></a>
 
+The Silicom Time Sync stack is deployed in our OpenShift worker node acting as boundary clock role. As we did before we can use the gRPC to check the timing status information:
+
+```console
+oc exec -it bc-1-du3-ldc1-tsync-rxh2w -n silicom -c du3-ldc1-grpc-tsyncd  -- tsynctl_grpc
+Tsynctl gRPC Client v1.1.3
+$ register 1 2 3 4 5
+...REDACTED...
+$ get_timing_status 1 2 3 4 5
+Please wait...
+
+msId:                    1
+msInstance:              2
+appId:                   3
+basebandId:              4
+
+Timing Status:
+==============
+Clock Mode:              BC Clock
+
+Clock Status:
+=============
+Sync Status:             Locked
+PTP Lock Status:         Locked
+Synce Lock Status:       Locked
+Sync Failure Cause:      N/A
+
+PTP Data:
+=========
+Profile:                 G_8275_1
+GM Clock ID:             00:E0:ED:FF:FE:F0:96:04
+Parent Clock ID:         00:E0:ED:FF:FE:F0:96:04
+Configured Clock Class:  248
+Received Clock Class:    6
+PTP Interface 1:    
+PTP Port 1 Role:         Master
+PTP Interface 2:    
+PTP Port 2 Role:         Master
+PTP Interface 3:         enp81s0f2
+PTP Port 3 Role:         Master
+PTP Interface 4:         enp81s0f3
+PTP Port 4 Role:         Slave
+...REDACTED...
+SyncE Data:
+===========
+SyncE Interface:         enp81s0f3
+Clock Quality:           1
+GNSS Data:
+==========
+Number of satellites:    0
+GNSS Fix Type:           0
+GNSS Fix Validity:       false
+GNSS Latitude:           0
+GNSS Longitude:          0
+GNSS Height:             0
+```
+
 ## Telecom Ordinay Clock Provisioning <a name="stsconfigOCprov"></a>
 
+### Label Ordinary Clock Node
+
+Add a node label `sts.silicom.com/config=oc-1` in the worker node with a Silicom Time Sync card. In our case our baremetal worker node name is `du2-ldc1`:
+
+```console
+# oc label node du2-ldc1 sts.silicom.com/config="oc-1"
+```
+
+### Instantiate Ordinary Clock Node
+
+```yaml
+# cat <<EOF | oc apply -f -
+apiVersion: sts.silicom.com/v1alpha1
+kind: StsConfig
+metadata:
+  name: oc-1
+  namespace: silicom
+spec:
+  namespace: silicom
+  imageRegistry: quay.io/silicom
+  nodeSelector:
+    sts.silicom.com/config: "oc-1"
+  mode: T-TSC.8275.1
+  twoStep: 0
+  esmcMode: 2
+  ssmMode: 1
+  forwardable: 1
+  syncRecClkPort: 3
+  syncOption: 1
+  gnssSpec:
+    gnssSigGpsEn: 0
+  interfaces:
+    - ethName: enp138s0f2
+      holdoff: 500
+      synce: 1
+      mode: Slave
+      ethPort: 3
+      qlEnable: 1
+      ql: 4
+```
+
 ## Telecom Ordinary Clock Operation <a name="stsconfigOCop"></a>
--->
+
+
+The Silicom Time Sync stack is deployed in our OpenShift worker node acting as ordinay clock. As we did before we can use the gRPC to check the timing status information:
+
+```console
+oc exec -it oc-1-du2-ldc1-tsync-bkqn9 -n silicom -c du2-ldc1-grpc-tsyncd  -- tsynctl_grpc
+Tsynctl gRPC Client v1.1.3
+$ register 1 1 1 1 1
+...REDACTED...
+$ get_timing_status 1 1 1 1 1
+Please wait...
+
+Timing Status:
+==============
+Clock Mode:           Slave Clock
+
+Clock Status:
+=============
+Sync Status:          Locked
+PTP Lock Status:      Locked
+Synce Lock Status:    Unknown
+Sync Failure Cause:   N/A
+
+PTP Data:
+=========
+Profile:                G_8275_1
+GM Clock ID:            00:E0:ED:FF:FE:F0:96:04
+Parent Clock ID:        00:E0:ED:FF:FE:F0:96:04
+Configured Clock Class: 255
+Received Clock Class:   6
+PTP Interface 1:    
+PTP Port 1 Role:        Slave
+PTP Interface 2:    
+PTP Port 2 Role:        Slave
+PTP Interface 3:        enp138s0f2
+...REDACTED...
+SyncE Data:
+===========
+SyncE Interface:        enp138s0f2
+Clock Quality:          1
+...REDACTED...
+```
 
 ## Uninstalling the Silicom STS Operator from the embedded OperatorHub <a name="uninstalling"></a>
 

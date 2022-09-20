@@ -1,0 +1,28 @@
+# du2sno oc
+apiVersion: sts.silicom.com/v1alpha1
+kind: StsConfig
+metadata:
+  name: oc-1
+  namespace: silicom
+spec:
+  namespace: silicom
+  imageRegistry: quay.io/silicom
+  nodeSelector:
+    sts.silicom.com/config: "oc-1"
+  mode: T-SC-8275.1
+  twoStep: 0
+  esmcMode: 2
+  ssmMode: 1
+  forwardable: 1
+  synceRecClkPort: 3
+  syncOption: 1
+  gnssSpec:
+    gnssSigGpsEn: 0
+  interfaces:
+    - ethName: enp138s0f2
+      synce: 1
+      holdoff: 500
+      mode: Slave
+      ethPort: 3
+      qlEnable: 1
+      ql: 4
