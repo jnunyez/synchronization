@@ -8,7 +8,7 @@ Synchronization and precise timing via Global Positioning Systems (GPS) is of pa
 
 1. [Fundamentals of Synchronization for 5G O-RAN](#background)
 2. [Pre-requisites](#pre-requisites)
-3. [Synchronization Topology Under Test](#topology)
+3. [Target Synchronization Topology](#topology)
 3. [Installing Silicom Time Sync Operator](#installation)
 4. [Telecom Grandmaster Provisioning](#stsconfig)
 6. [Telecom Grandmaster Operation](#stsops)
@@ -72,15 +72,17 @@ Before we proceed to install the Silicom Time Sync Operator, ensure that you hav
 
 ## Target Synchronization Topology <a name="topology"></a>
 
-In the picture below, we represent the aimed synchronization topology hierarchy. For the sake of demonstration we have three worker nodes in an OCP 4.10 cluster: du4-ldc1, du3-ldc1, and du2-ldc1. The goal is to configure du4-ldc1 as Grandmaster, du3-ldc1 as Boundary, and du2-ldc1 as Ordinary clock according to the requirements defined by ITU-T G.8275.1 profile. Accroding to the scenarios defined by G.8275.1 we can consider the topology depicted below a representative topology.  
+In the picture below, we represent the aimed synchronization topology hierarchy. For the sake of demonstration we have three worker nodes in a fresh OCP 4.10 cluster: `du4-ldc1`, `du3-ldc1`, and `du2-ldc1`. 
 
 ![Synchronization Topology](imgs/ptp-topology.png)
 
+The goal is to configure `du4-ldc1` as Grandmaster, `du3-ldc1` as Boundary, and `du2-ldc1` as Ordinary clock according to the requirements defined by ITU-T G.8275.1 profile. According to the scenarios defined by G.8275.1 we can consider the topology depicted above a representative topology.  
+  
 ## Install Silicom Time Sync Operator <a name="installation"></a>
 
 There are two distinct type of entities the operator handles: one is the Silicom Time Sync physical card, and the other is the Silicom Time Sync software stack. The certified Operator dramatically simplifies the deployment, configuration, and management of the Silicom Time Sync physical cards and the Time Sync software.
 
-#### Install Silicom Time Sync (STS) Card in Worker
+#### Install Silicom Time Sync (STS) Card in Worker Nodes
 
 1. Install the card in a PCI-Express 4.0 x16 slot inside a baremetal worker node.
 2. Connect USB cable from uUSB in card to USB port in the baremetal worker node.
@@ -444,29 +446,7 @@ Configured Clock Class: 248
 Received Clock Class:   6
 PTP Interface 1:    enp81s0f0
 PTP Port 1 Role:    Unknown
-PTP Interface 2:    
-PTP Port 2 Role:    Unknown
-PTP Interface 3:    
-PTP Port 3 Role:    Unknown
-PTP Interface 4:    
-PTP Port 4 Role:    Unknown
-PTP Interface 5:    
-PTP Port 5 Role:    Unknown
-PTP Interface 6:    
-PTP Port 6 Role:    Unknown
-PTP Interface 7:    
-PTP Port 7 Role:    Unknown
-PTP Interface 8:    
-PTP Port 8 Role:    Unknown
-PTP Interface 9:    
-PTP Port 9 Role:    Unknown
-PTP Interface 10:   
-PTP Port 10 Role:   Unknown
-PTP Interface 11:   
-PTP Port 11 Role:   Unknown
-PTP Interface 12:   
-PTP Port 12 Role:   Unknown
-
+...REDACTED...
 SyncE Data:
 ===========
 SyncE Interface:    according to T-GM series SyncE Port Bit Mask value in tsyncd.conf file
