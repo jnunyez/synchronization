@@ -64,15 +64,17 @@ Before we proceed to install the Silicom Time Sync Operator, ensure that you hav
 
 - [Authenticate as Cluster Admin inside your environment][11] in the OpenShift Cluster.
 
-- Worker Nodes based on [SYS-210P][3] are used in this blog, but other server platforms that meet the PCIe Gen4 slot and height requirements should work.
-  - Red Hat Enterprise Linux CoreOS.
+- Three worker nodes based on [SYS-210P][3] are used in this blog, but other server platforms that meet the PCIe Gen4 slot and height requirements should work.
+  - Red Hat Enterprise Linux CoreOS in each worker node.
   - PCI-Express 4.0 x16 free slot in worker node.
 
 - A container image with the following utilities installed: `lspci`, `ethtools`, and `lsusb`. This image will be used in the worker node equipped with STS card. The image can be pre-built and pushed into a container image registry such as [Red Hat Quay][13] or built locally as an ephemeral container.
 
-## Synchronization Topology Under Test <a name="topology"></a>
+## Target Synchronization Topology <a name="topology"></a>
 
-![Sync Topology](imgs/ptp-topology.png)
+In the picture below, we represent the aimed synchronization topology hierarchy. For the sake of demonstration we have three worker nodes in an OCP 4.10 cluster: du4-ldc1, du3-ldc1, and du2-ldc1. The goal is to configure du4-ldc1 as Grandmaster, du3-ldc1 as Boundary, and du2-ldc1 as Ordinary clock according to the requirements defined by ITU-T G.8275.1 profile. Accroding to the scenarios defined by G.8275.1 we can consider the topology depicted below a representative topology.  
+
+![Synchronization Topology](imgs/ptp-topology.png)
 
 ## Install Silicom Time Sync Operator <a name="installation"></a>
 
