@@ -64,19 +64,20 @@ Before we proceed to install the Silicom Time Sync Operator, ensure that you hav
 
 - [Authenticate as Cluster Admin inside your environment][11] in the OpenShift Cluster.
 
-- Three worker nodes based on [SYS-210P][3] are used in this blog, but other server platforms that meet the PCIe Gen4 slot and height requirements should work.
-  - Red Hat Enterprise Linux CoreOS in each worker node.
-  - PCI-Express 4.0 x16 free slot in worker node.
+- Three worker nodes based on [SYS-210P][3] are used in this blog, but other server platforms that meet the PCIe Gen4 slot and height requirements should work. The worker nodes require:
+  - Red Hat Enterprise Linux CoreOS in each of the three OpenShift worker nodes.
+  - PCI-Express 4.0 x16 free slot in each of the three OpenShift worker nodes.
+  - Default `chrony` time services daemon disabled in each of the three OpenShift worker node. In OpenShift 4.10 you can use post-installation Machine Config tasks as described [here][15].
 
 - A container image with the following utilities installed: `lspci`, `ethtools`, and `lsusb`. This image will be used in the worker node equipped with STS card. The image can be pre-built and pushed into a container image registry such as [Red Hat Quay][13] or built locally as an ephemeral container.
 
 ## Target Synchronization Topology <a name="topology"></a>
 
-In the picture below, we represent the aimed synchronization topology hierarchy. For the sake of demonstration we have three worker nodes in a fresh OCP 4.10 cluster: `du4-ldc1`, `du3-ldc1`, and `du2-ldc1`. 
+In the picture below, we represent the aimed synchronization topology hierarchy. For the sake of demonstration we have three worker nodes in a fresh Openshift 4.10 cluster: `du4-ldc1`, `du3-ldc1`, and `du2-ldc1`. 
 
 ![Synchronization Topology](imgs/ptp-topology.png)
 
-The goal is to configure `du4-ldc1` as Grandmaster, `du3-ldc1` as Boundary, and `du2-ldc1` as Ordinary clock according to the requirements defined by ITU-T G.8275.1 profile. According to the scenarios defined by G.8275.1 we can consider the topology depicted above a representative topology.  
+The goal is to configure `du4-ldc1` as Grandmaster, `du3-ldc1` as Boundary, and `du2-ldc1` as Ordinary clock according to the requirements defined by ITU-T G.8275.1 profile. According to the scenarios defined by G.8275.1 we can consider the topology depicted above a representative topology. 
   
 ## Install Silicom Time Sync Operator <a name="installation"></a>
 
@@ -712,3 +713,4 @@ Special thanks to the following individuals for their feedback in the authoring 
 [11]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/cli_tools/openshift-cli-oc#cli-logging-in_cli-developer-commands
 [12]: https://www.itu.int/rec/T-REC-G.8275.1/recommendation.asp?lang=en&parent=T-REC-G.8275.1-202003-I
 [13]: https://www.redhat.com/en/technologies/cloud-computing/quay
+[14]: https://docs.openshift.com/container-platform/4.10/post_installation_configuration/machine-configuration-tasks.html
