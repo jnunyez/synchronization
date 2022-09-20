@@ -8,11 +8,16 @@ Synchronization and precise timing via Global Positioning Systems (GPS) is of pa
 
 1. [Fundamentals of Synchronization for 5G O-RAN](#background)
 2. [Pre-requisites](#pre-requisites)
+3. [Synchronization Topology Under Test](#topology)
 3. [Installing Silicom Time Sync Operator](#installation)
 4. [Telecom Grandmaster Provisioning](#stsconfig)
 6. [Telecom Grandmaster Operation](#stsops)
-7. [Uninstalling Silicom Time Sync Operator](#uninstalling)
-8. [Wrapup](#conclusion)
+7. [Telecom Boundary Clock Provisioning](#stsconfigBCprov)
+7. [Telecom Boundary Clock Operation](#stsconfigBCop)
+8. [Telecom Ordinary Clock Provisioning](#stsconfigOCproc)
+9. [Telecom Ordinary Clock Operation](#stsconfigOCop)
+10. [Uninstalling Silicom Time Sync Operator](#uninstalling)
+11. [Wrapup](#conclusion)
 
 
 ## Fundamentals of Synchronization for 5G Open Radio Access networks (O-RAN) <a name="background"></a>
@@ -65,7 +70,7 @@ Before we proceed to install the Silicom Time Sync Operator, ensure that you hav
 
 - A container image with the following utilities installed: `lspci`, `ethtools`, and `lsusb`. This image will be used in the worker node equipped with STS card. The image can be pre-built and pushed into a container image registry such as [Red Hat Quay][13] or built locally as an ephemeral container.
 
-## Synchronization Topology Under Test
+## Synchronization Topology Under Test <a name="topology"></a>
 
 ![Sync Topology](imgs/ptp-topology.png)
 
@@ -588,7 +593,7 @@ GNSS Longitude:          0
 GNSS Height:             0
 ```
 
-## Telecom Ordinay Clock Provisioning <a name="stsconfigOCprov"></a>
+## Telecom Ordinary Clock Provisioning <a name="stsconfigOCprov"></a>
 
 ### Label Ordinary Clock Node
 
