@@ -73,17 +73,24 @@ Before we proceed to install the Silicom Time Sync Operator, ensure that you hav
 
 ## Target Synchronization Topology <a name="topology"></a>
 
-In the picture below, we represent the aimed synchronization topology hierarchy. For the sake of demonstration we have three worker nodes in a fresh Openshift 4.10 cluster: `du4-ldc1`, `du3-ldc1`, and `du2-ldc1`. 
+In the picture below, we represent the aimed synchronization topology hierarchy. For the sake of demonstration, we include three worker nodes in a fresh Openshift 4.10 cluster: `du4-ldc1`, `du3-ldc1`, and `du2-ldc1`. 
 
 ![Synchronization Topology](imgs/ptp-topology.png)
 
-The goal is to configure `du4-ldc1` as Grandmaster, `du3-ldc1` as Boundary, and `du2-ldc1` as Ordinary clock according to the requirements defined by ITU-T G.8275.1 profile. According to the scenarios defined by G.8275.1 we can consider the topology depicted above a representative topology. 
+<figcaption>
+
+**Figure 3** Reference Synchronization Topology under evaluation.
+
+</figcaption>
+
+The goal is to configure worker node `du4-ldc1` as Grandmaster Clock, `du3-ldc1` as Boundary Clock, and `du2-ldc1` as Ordinary Clock according to the requirements defined by ITU-T G.8275.1 profile. According to the scenarios defined by G.8275.1 we can consider the topology depicted above a representative topology. 
   
 ## Install Silicom Time Sync Operator <a name="installation"></a>
 
 There are two distinct type of entities the operator handles: one is the Silicom Time Sync physical card, and the other is the Silicom Time Sync software stack. The certified Operator dramatically simplifies the deployment, configuration, and management of the Silicom Time Sync physical cards and the Time Sync software.
 
 #### Install Silicom Time Sync (STS) Card in Worker Nodes
+Here we describe the steps to follow to install the STS Card in each of the three OpenShift worker nodes: 
 
 1. Install the card in a PCI-Express 4.0 x16 slot inside a baremetal worker node.
 2. Connect USB cable from uUSB in card to USB port in the baremetal worker node.
@@ -93,7 +100,7 @@ There are two distinct type of entities the operator handles: one is the Silicom
 
 <figcaption>
 
-**Figure 3** SubMiniature version A (SMA) Connector for GPS input receiver in Silicom Time Sync (STS) Card.
+**Figure 4** SubMiniature version A (SMA) Connector for GPS input receiver in Silicom Time Sync (STS) Card.
 
 </figcaption>
 
@@ -140,7 +147,7 @@ There are two distinct type of entities the operator handles: one is the Silicom
   # ethtool -i enp81s0f2 | grep firmware
   firmware-version: 3.20 0x8000eb26 1.3146.0
   ```
-9. Assure that the GPS input is getting proper GPS data:
+9. For the case of the worker node acting as Grandmaster Clock, assure that the GPS input is getting proper GPS data:
 
   ```console
   # stty -F /dev/ttyACM0 raw
@@ -169,7 +176,7 @@ We first create a namespace (e.g., silicom namespace) from the Web Console. Go t
 
 <figcaption>
 
-**Figure 4** Create Namespace where STS Operator will be located.
+**Figure 5** Create Namespace where Silicom Time Sync Operator will be located.
 
 </figcaption>
 
@@ -194,7 +201,7 @@ By means of the OpenShift Web Console, install the STS Operator in the `silicom`
 
 <figcaption>
 
-**Figure 6** Install Silicom Time Sync (STS) Operator.
+**Figure 5** Install Silicom Time Sync (STS) Operator.
 
 </figcaption>
 
@@ -262,22 +269,22 @@ spec:
   nodeSelector:
     sts.silicom.com/config: "gm-1"
   mode: T-GM.8275.1
-  twoStep: 0
-  esmcMode: 2
-  ssmMode: 1
+  twoStep: 0                         # <-- One-Step PTP timestamping mode 
+  esmcMode: 2                        # <-- ESMC mode in auto
+  ssmMode: 1                         # <-- SSM Mode configured to SSM code
   forwardable: 1
   synceRecClkPort: 3
-  syncOption: 1
+  syncOption: 1                      # <-- Europe Sync option
   gnssSpec:
     gnssSigGpsEn: 1
   interfaces:
     - ethName: enp81s0f2
-      holdoff: 500
-      synce: 1
+      holdoff: 500                   # <-- SyncE Holdoff
+      synce: 1                       # <-- Enable SyncE
       mode: Master
       ethPort: 3
-      qlEnable: 1
-      ql: 2
+      qlEnable: 1                    # <-- QL Enabled
+      ql: 2                          # <-- QL-PRTC
 EOF                 
 ```
 
@@ -318,8 +325,6 @@ As showed in the Figure above, the STSConfig CR instance triggers the creation o
 
 - `gpsd` container reads and distributes the timing/phase/frequency information gathered from the GNSS receiver.
 
-<!--`tsync_extts`, aligns the PTP Hardware clock to the external timing information gathered from the GNSS receiver.-->
-
 - `phc2sys` that aligns the worker node system clock to the PTP Hardware clock embedded in the STS card.
 
 
@@ -341,7 +346,7 @@ gpsd:CLIENT: => client(0): {"class":"TPV","device":"/dev/ttyACM0","status":7,"mo
 Tsynctl gRPC Client v1.1.3
 ```
 
-3. You can now check the status of the GM clock in the Silicom network card. `LOCKED` state means that the PHC clock in the STS card is aligned to the received timing/phase information from the GNSS receiver:
+3. You can now check the status of the GM clock in the Silicom Time Sync card. `LOCKED` state means that the Hardware Clock in the STS card is aligned to the received timing/phase information from the GNSS receiver:
 
 ```console
 $ get_clk_class
@@ -381,14 +386,12 @@ Note the importance of attaining `GNSS Type of Fix: 5 - Time-only fix`. The GNSS
 
 ```console
 $ help
-.
-.
-
+...REDACTED...
 Timing Info:
 ============
-register    [params] - Registration for Timing Commands
+register          [params] - Registration for Timing Commands
 
-deregister    [params] - Deregistration for Timing Commands
+deregister        [params] - Deregistration for Timing Commands
 
 get_timing_status [params] - Get Timing status (requires registration)
 
@@ -401,8 +404,7 @@ get_timing_stats  [params] - Get Timing statistics (requires registration)
     Application ID
     vDU baseband ID
     Remote Application ID
-.
-.
+...REDACTED...
 ```
 
 6. Register the gRPC client first via `register` command (register and deregister are commands to get access for Timing Info/ Timing Config related commands, contact [Silicom](mailto:support@silicom-usa.com) for further information):
@@ -475,7 +477,7 @@ Add a node label `sts.silicom.com/config=bc-1` in the worker node with a Silicom
 
 ### Instantiate StsConfig CR
 
-Create a StsConfig CR object to provision the desired Telecom PTP profile [T-GM.8275.1][12] focused on phase/timing synchronization with full timing support from the network.
+Create a StsConfig CR object to provision the desired Telecom PTP profile [T-GM.8275.1][12] focused on phase/timing and frequency synchronization (SyncE is enabled) with full timing support from the network.
 Note in the StsConfig below the field `nodeSelector` to constrain the nodes in the cluster where to provision the Telecom PTP profile to those nodes labelled with `sts.silicom.com/config=bc-1`.
 
 ```yaml
@@ -491,39 +493,39 @@ spec:
   nodeSelector:
     sts.silicom.com/config: "bc-1"
   mode: T-BC-8275.1
-  twoStep: 0
-  esmcMode: 2
-  ssmMode: 1
+  twoStep: 0                           # <-- One-Step PTP timestamping mode
+  esmcMode: 2                          # <-- ESMC Mode
+  ssmMode: 1                           # <-- SSM Mode is SSM Code
   forwardable: 1
   synceRecClkPort: 4
-  syncOption: 1
+  syncOption: 1                        # <-- Europe Sync Option
   gnssSpec:
-    gnssSigGpsEn: 0
+    gnssSigGpsEn: 0                    # <-- GPS Disabled
   interfaces:
     - ethName: enp81s0f3
-      synce: 1
-      holdoff: 500
+      synce: 1                         # <-- Enable SyncE 
+      holdoff: 500                     # <-- Holdoff SyncE
       mode: Slave
-      ethPort: 4
-      qlEnable: 1
-      ql: 2
+      ethPort: 4 
+      qlEnable: 1                      # <-- QL Enabled
+      ql: 4                            # <-- QL-DNU
     - ethName: enp81s0f2
       synce: 1
       holdoff: 500
       mode: Master
       ethPort: 3
-      qlEnable: 1
-      ql: 4
+      qlEnable: 1                     # <-- QL Enabled
+      ql: 2                           # <-- QL 
 EOF
 ```
-Note here that `enp81s0f3` is configured as a Slave port, whereas `enp81s0f2` interface is configured as master port to feed other nodes in the synchronization hierarchy.
+Note here that `enp81s0f3` is configured as a Slave port, whereas `enp81s0f2` interface is configured as master port to feed phase/time and frequency to other nodes in the synchronization hierarchy. These nodes can be either Boundary Clocks or Ordinary Clocks.
 
 ## Telecom Boundary Clock Operation <a name="stsconfigBCop"></a>
 
 The Silicom Time Sync stack is deployed in our OpenShift worker node acting as boundary clock role. As we did before we can use the gRPC to check the timing status information:
 
 ```console
-oc exec -it bc-1-du3-ldc1-tsync-rxh2w -n silicom -c du3-ldc1-grpc-tsyncd  -- tsynctl_grpc
+# oc exec -it bc-1-du3-ldc1-tsync-rxh2w -n silicom -c du3-ldc1-grpc-tsyncd  -- tsynctl_grpc
 Tsynctl gRPC Client v1.1.3
 $ register 1 2 3 4 5
 ...REDACTED...
@@ -588,6 +590,8 @@ Add a node label `sts.silicom.com/config=oc-1` in the worker node with a Silicom
 
 ### Instantiate Ordinary Clock Node
 
+Create a StsConfig CR object to provision the desired Telecom PTP profile [T-GM.8275.1][12] focused on ending the synchronization chain for both PTP and SyncE protocols. Note again the use `nodeSelector` to constrain the worker nodes to those nodes labelled with `sts.silicom.com/config=oc-1`.
+
 ```yaml
 # cat <<EOF | oc apply -f -
 apiVersion: sts.silicom.com/v1alpha1
@@ -600,29 +604,29 @@ spec:
   imageRegistry: quay.io/silicom
   nodeSelector:
     sts.silicom.com/config: "oc-1"
-  mode: T-TSC.8275.1
-  twoStep: 0
-  esmcMode: 2
-  ssmMode: 1
+  mode: T-TSC.8275.1                 
+  twoStep: 0                          # <-- One-Step PTP timestamping mode
+  esmcMode: 2                         # <-- ESMC Mode
+  ssmMode: 1                          # <-- SSM Mode is SSM Code
   forwardable: 1
   syncRecClkPort: 3
-  syncOption: 1
+  syncOption: 1                       # <-- Europe Sync Option
   gnssSpec:
-    gnssSigGpsEn: 0
+    gnssSigGpsEn: 0                   # <-- GPS Disabled
   interfaces:
     - ethName: enp138s0f2
-      holdoff: 500
-      synce: 1
-      mode: Slave
+      holdoff: 500                    # <-- Holdoff SyncE
+      synce: 1                        # <-- Enable SyncE for frequency synchronization
+      mode: Slave                     # <-- Port Mode
       ethPort: 3
-      qlEnable: 1
-      ql: 4
+      qlEnable: 1                     # <-- QL Enabled
+      ql: 4                           # <-- QL-DNU (Do not Use)
 ```
 
 ## Telecom Ordinary Clock Operation <a name="stsconfigOCop"></a>
 
 
-The Silicom Time Sync stack is deployed in our OpenShift worker node acting as ordinay clock. As we did before we can use the gRPC to check the timing status information:
+The Silicom Time Sync stack is deployed in our OpenShift worker node acting as an Ordinary Clock. As we did before we can use the gRPC to check the timing status information:
 
 ```console
 oc exec -it oc-1-du2-ldc1-tsync-bkqn9 -n silicom -c du2-ldc1-grpc-tsyncd  -- tsynctl_grpc
@@ -640,7 +644,7 @@ Clock Status:
 =============
 Sync Status:          Locked
 PTP Lock Status:      Locked
-Synce Lock Status:    Unknown
+Synce Lock Status:    Locked
 Sync Failure Cause:   N/A
 
 PTP Data:
@@ -680,13 +684,13 @@ You will see how the time synchronization service is still active because CRs we
 
 Note that although the Operator is no longer installed, the time synchronization service is still detecting a GPS device, and `du4-ldc1` is still acting as master node. This is common among Operators in general to prevent a data loss situation, or outages in case the operator is uninstalled unintentionally. This policy is of special interest in our case, as the time synchronization is a critical service to keep active in 5G deployments. To fully uninstall the Silicom Time Sync stack, you should:
 
-* Delete all the objects associated to the Silicom Time Sync stack.
+* Delete all the objects associated to the Silicom Time Sync stack:
 
 ```console
-# oc delete stsconfig gm-1
-# oc delete stsnode du4-ldc1
-# oc delete stsoperatorconfig sts-operator-config
-# oc delete nodefeaturediscovery nfd-sts-silicom
+# oc delete stsconfig gm-1 bc-1 oc-1 -n silicom
+# oc delete stsnode du4-ldc1 du3-ldc1 du2-ldc1 -n silicom
+# oc delete stsoperatorconfig sts-operator-config -n silicom
+# oc delete nodefeaturediscovery nfd-sts-silicom -n silicom
 ```
 
 ## Wrap-up <a name="conclusion"></a>
