@@ -241,7 +241,7 @@ After this, the STS Operator creates a daemonset called `sts-plugin` in those no
 
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
 
-Now we proceed to configure the baremetal worker node `du4-ldc1` as Telecom Grandmaster (T-GM). 
+Now we proceed to configure the baremetal worker node `du4-ldc1` as Telecom Grandmaster (T-GM).
 
 ### Label Grandmaster Node
 
@@ -269,22 +269,22 @@ spec:
   nodeSelector:
     sts.silicom.com/config: "gm-1"
   mode: T-GM.8275.1
-  twoStep: 0                         # <-- One-Step PTP timestamping mode 
-  esmcMode: 2                        # <-- ESMC mode in auto
-  ssmMode: 1                         # <-- SSM Mode configured to SSM code
+  twoStep: 0                         # <-- One-Step PTP timestamping mode (requires PTP HW Timestamp) 
+  esmcMode: 2                        # <-- set ESMC mode to auto
+  ssmMode: 1                         # <-- set SSM Mode configured to SSM code
   forwardable: 1
   synceRecClkPort: 3
-  syncOption: 1                      # <-- Europe Sync option
+  syncOption: 1                      # <-- Europe Synchronization network option
   gnssSpec:
     gnssSigGpsEn: 1
   interfaces:
     - ethName: enp81s0f2
-      holdoff: 500                   # <-- SyncE Holdoff
+      holdoff: 500                   # <-- SyncE Hold-off timer set to 500msec
       synce: 1                       # <-- Enable SyncE
       mode: Master
       ethPort: 3
-      qlEnable: 1                    # <-- QL Enabled
-      ql: 2                          # <-- QL-PRTC
+      qlEnable: 1                    # <-- ESMC Quality Level (QL) Enabled
+      ql: 2                          # <-- ESMC Quality Level (QL) set to PRTC
 EOF                 
 ```
 
@@ -467,6 +467,8 @@ GNSS Height:            140850
 
 ## Telecom Boundary Clock Provisioning <a name="stsconfigBCprov"></a>
 
+Now we proceed to configure the baremetal worker node `du3-ldc1` as Telecom Bounday clock (T-BC).
+
 ### Label Boundary Clock Node
 
 Add a node label `sts.silicom.com/config=bc-1` in the worker node with a Silicom Time Sync card. In our case our baremetal worker node name is `du3-ldc1`:
@@ -493,29 +495,29 @@ spec:
   nodeSelector:
     sts.silicom.com/config: "bc-1"
   mode: T-BC-8275.1
-  twoStep: 0                           # <-- One-Step PTP timestamping mode
-  esmcMode: 2                          # <-- ESMC Mode
-  ssmMode: 1                           # <-- SSM Mode is SSM Code
+  twoStep: 0                           # <-- One-Step PTP timestamping mode (requires PTP HW Timestamp)
+  esmcMode: 2                          # <-- set ESMC Mode to auto
+  ssmMode: 1                           # <-- set SSM Mode to SSM Code
   forwardable: 1
   synceRecClkPort: 4
-  syncOption: 1                        # <-- Europe Sync Option
+  syncOption: 1                        # <-- Europe Synchronization Network Option
   gnssSpec:
     gnssSigGpsEn: 0                    # <-- GPS Disabled
   interfaces:
     - ethName: enp81s0f3
       synce: 1                         # <-- Enable SyncE 
-      holdoff: 500                     # <-- Holdoff SyncE
-      mode: Slave
+      holdoff: 500                     # <-- SyncE Hold-off timer set to 500msec
+      mode: Slave                      
       ethPort: 4 
       qlEnable: 1                      # <-- QL Enabled
-      ql: 4                            # <-- QL-DNU
+      ql: 4                            # <-- ESMC Quality Level (QL) set to DNU (Do Not Use)
     - ethName: enp81s0f2
       synce: 1
       holdoff: 500
-      mode: Master
+      mode: Master                    
       ethPort: 3
-      qlEnable: 1                     # <-- QL Enabled
-      ql: 2                           # <-- QL 
+      qlEnable: 1                     # <-- ESMC Quality Level Enabled
+      ql: 2                           # <-- ESMC Quality Level (QL) set to PRTC 
 EOF
 ```
 Note here that `enp81s0f3` is configured as a Slave port, whereas `enp81s0f2` interface is configured as master port to feed phase/time and frequency to other nodes in the synchronization hierarchy. These nodes can be either Boundary Clocks or Ordinary Clocks.
@@ -580,6 +582,8 @@ GNSS Height:             0
 
 ## Telecom Ordinary Clock Provisioning <a name="stsconfigOCprov"></a>
 
+Now we proceed to configure the baremetal worker node `du4-ldc1` as Telecom Ordinary Clock (T-OC).
+
 ### Label Ordinary Clock Node
 
 Add a node label `sts.silicom.com/config=oc-1` in the worker node with a Silicom Time Sync card. In our case our baremetal worker node name is `du2-ldc1`:
@@ -607,7 +611,7 @@ spec:
   mode: T-TSC.8275.1                 
   twoStep: 0                          # <-- One-Step PTP timestamping mode
   esmcMode: 2                         # <-- ESMC Mode
-  ssmMode: 1                          # <-- SSM Mode is SSM Code
+  ssmMode: 1                          # <-- Mode is SSSM Code
   forwardable: 1
   syncRecClkPort: 3
   syncOption: 1                       # <-- Europe Sync Option
@@ -615,12 +619,12 @@ spec:
     gnssSigGpsEn: 0                   # <-- GPS Disabled
   interfaces:
     - ethName: enp138s0f2
-      holdoff: 500                    # <-- Holdoff SyncE
+      holdoff: 500                    # <-- SyncE Hold-off timer set to 500msec
       synce: 1                        # <-- Enable SyncE for frequency synchronization
       mode: Slave                     # <-- Port Mode
       ethPort: 3
-      qlEnable: 1                     # <-- QL Enabled
-      ql: 4                           # <-- QL-DNU (Do not Use)
+      qlEnable: 1                     # <-- ESMC Quality Level (QL) Enabled
+      ql: 4                           # <-- Quality Level value set to DNU (Do Not Use)
 ```
 
 ## Telecom Ordinary Clock Operation <a name="stsconfigOCop"></a>
@@ -694,7 +698,7 @@ Note that although the Operator is no longer installed, the time synchronization
 ```
 
 ## Wrap-up <a name="conclusion"></a>
-This post provided a detailed walk through of the installation, operation and un-installation of the recently released [certified Silicom Time Sync Operator][4] for 5G synchronization in O-RAN deployments. By taking care of low-level hardware, this Operator does a really good job abstracting details of managing both the Hardware NIC and PTP/SyncE Software Synchronization protocols, so that the OpenShift Container Platform administrator does not have to be an expert in 5G synchronization and O-RAN. In future posts, we will focus on more complex and dynamic synchronization PTP topology setups, including Boundary Clocks (BC) and Ordinary Clocks (OC) ports.
+This post provided a detailed walk through of the installation, operation and un-installation of the recently released [certified Silicom Time Sync Operator][4] for 5G synchronization in O-RAN deployments. By taking care of low-level hardware, this Operator does a really good job abstracting details of managing both the Hardware NIC and PTP/SyncE Software Synchronization protocols, so that the OpenShift Container Platform administrator does not have to be an expert in 5G synchronization and O-RAN. 
 
 ## Acknowledgements
 
