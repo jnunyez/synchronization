@@ -629,7 +629,6 @@ spec:
 
 ## Telecom Ordinary Clock Operation <a name="stsconfigOCop"></a>
 
-
 The Silicom Time Sync stack is deployed in our OpenShift worker node acting as an Ordinary Clock. As we did before we can use the gRPC to check the timing status information:
 
 ```console
@@ -673,7 +672,17 @@ Clock Quality:          1
 
 ## Uninstalling the Silicom STS Operator from the embedded OperatorHub <a name="uninstalling"></a>
 
-Uninstalling the Operator can be done from the OperatorHub console in your OpenShift cluster.
+
+Note that if you directly delete the operator the time synchronization pod will still be deployed and working in the three worker nodes. This is common among Operators in general to prevent a data loss situation, or outages in case the operator is uninstalled unintentionally. This policy is of special interest in our case, as the time synchronization is a critical service to keep active in 5G deployments. To fully uninstall the Silicom Time Sync stack, you should:
+
+* First delete the `StsConfig` and `StsOperatorConfig` CRs we created before:
+
+```console
+# oc delete stsconfig gm-1 bc-1 oc-1 -n silicom
+# oc delete stsoperatorconfig sts-operator-config -n silicom
+```
+
+* Now, uninstalling the Operator can be done from the OperatorHub console in your OpenShift cluster.
 
 ![installed](imgs/03_uninstall.png)
 
@@ -683,19 +692,6 @@ Uninstalling the Operator can be done from the OperatorHub console in your OpenS
 
 </figcaption>
 
-You will see how the time synchronization service is still active because CRs we previously provisioned and the physical card are still present. The CRDs `StsNodes`, `StsOperatorConfig`, and `StsConfig` keep the created GM role active.
-
-
-Note that although the Operator is no longer installed, the time synchronization service is still detecting a GPS device, and `du4-ldc1` is still acting as master node. This is common among Operators in general to prevent a data loss situation, or outages in case the operator is uninstalled unintentionally. This policy is of special interest in our case, as the time synchronization is a critical service to keep active in 5G deployments. To fully uninstall the Silicom Time Sync stack, you should:
-
-* Delete all the objects associated to the Silicom Time Sync stack:
-
-```console
-# oc delete stsconfig gm-1 bc-1 oc-1 -n silicom
-# oc delete stsnode du4-ldc1 du3-ldc1 du2-ldc1 -n silicom
-# oc delete stsoperatorconfig sts-operator-config -n silicom
-# oc delete nodefeaturediscovery nfd-sts-silicom -n silicom
-```
 
 ## Wrap-up <a name="conclusion"></a>
 This post provided a detailed walk through of the installation, operation and un-installation of the recently released [certified Silicom Time Sync Operator][4] for 5G synchronization in O-RAN deployments. By taking care of low-level hardware, this Operator does a really good job abstracting details of managing both the Hardware NIC and PTP/SyncE Software Synchronization protocols, so that the OpenShift Container Platform administrator does not have to be an expert in 5G synchronization and O-RAN. 
