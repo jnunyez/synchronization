@@ -67,7 +67,7 @@ Before we proceed to install the Silicom Time Sync Operator, ensure that you hav
 - Three worker nodes based on [SYS-210P][3] are used in this blog, but other server platforms that meet the PCIe Gen4 slot and height requirements should work. The worker nodes require:
   - Red Hat Enterprise Linux CoreOS in each of the three OpenShift worker nodes.
   - PCI-Express 4.0 x16 free slot in each of the three OpenShift worker nodes.
-  - Default `chrony` time services daemon disabled in each of the three OpenShift worker node. In OpenShift 4.10 you can use post-installation Machine Config tasks as described [here][15].
+  - Default `chrony` time services daemon disabled in each of the three OpenShift worker nodes. In OpenShift 4.10 you can use post-installation Machine Config tasks as described [here][15].
 
 - A container image with the following utilities installed: `lspci`, `ethtools`, and `lsusb`. This image will be used in the worker node equipped with STS card. The image can be pre-built and pushed into a container image registry such as [Red Hat Quay][13] or built locally as an ephemeral container.
 
@@ -422,21 +422,21 @@ remoteAppId:    5
 $ get_timing_status 1 2 3 4 5
 Please wait...
 
-msId:       1
+msId:           1
 msInstance:     2
-appId:        3
+appId:          3
 basebandId:     4
 
 Timing Status:
 ==============
-Clock Mode:     GM Clock
+Clock Mode:             GM Clock
 
 Clock Status:
 =============
-Sync Status:          Locked
-PTP Lock Status:      Unknown
-Synce Lock Status:    Unknown
-Sync Failure Cause:   N/A
+Sync Status:            Locked
+PTP Lock Status:        Unknown
+Synce Lock Status:      Unknown
+Sync Failure Cause:     N/A
 
 PTP Data:
 =========
@@ -445,22 +445,22 @@ GM Clock ID:            00:E0:ED:FF:FE:F0:96:04
 Parent Clock ID:        00:E0:ED:FF:FE:F0:96:04
 Configured Clock Class: 248
 Received Clock Class:   6
-PTP Interface 1:    enp81s0f0
-PTP Port 1 Role:    Unknown
+PTP Interface 1:        enp81s0f0
+PTP Port 1 Role:        Unknown
 ...REDACTED...
 SyncE Data:
 ===========
-SyncE Interface:    according to T-GM series SyncE Port Bit Mask value in tsyncd.conf file
-Clock Quality:      2
+SyncE Interface:        according to T-GM series SyncE Port Bit Mask value in tsyncd.conf file
+Clock Quality:          2
 
 GNSS Data:
 ==========
-Number of satellites: 30
-GNSS Fix Type:        5
-GNSS Fix Validity:    true
-GNSS Latitude:        329430765
-GNSS Longitude:       3325022314
-GNSS Height:          140850
+Number of satellites:   30
+GNSS Fix Type:          5
+GNSS Fix Validity:      true
+GNSS Latitude:          329430765
+GNSS Longitude:         3325022314
+GNSS Height:            140850
 ```
 
 ## Telecom Boundary Clock Provisioning <a name="stsconfigBCprov"></a>
