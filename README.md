@@ -59,12 +59,15 @@ Before we proceed to install the Silicom Time Sync Operator, ensure that you hav
 
 - [Authenticate as Cluster Admin inside your environment][11] in the OpenShift Cluster.
 
-- Worker Node based on [SYS-210P][3] is used in this blog, but other server platforms that meet the PCIe Gen4 slot and height requirements should work.
+- Worker Nodes based on [SYS-210P][3] are used in this blog, but other server platforms that meet the PCIe Gen4 slot and height requirements should work.
   - Red Hat Enterprise Linux CoreOS.
   - PCI-Express 4.0 x16 free slot in worker node.
 
 - A container image with the following utilities installed: `lspci`, `ethtools`, and `lsusb`. This image will be used in the worker node equipped with STS card. The image can be pre-built and pushed into a container image registry such as [Red Hat Quay][13] or built locally as an ephemeral container.
 
+## Synchronization Topology Under Test
+
+![Sync Topology](imgs/ptp-topology.png)
 
 ## Install Silicom Time Sync Operator <a name="installation"></a>
 
@@ -221,7 +224,7 @@ After this, the STS Operator creates a daemonset called `sts-plugin` in those no
 
 ## Telecom Grandmaster Provisioning <a name="stsconfig"></a>
 
-Now we proceed to configure the baremetal worker node `du4-ldc1` as Telecom Grandmaster (T-GM).
+Now we proceed to configure the baremetal worker node `du4-ldc1` as Telecom Grandmaster (T-GM). 
 
 ### Label Grandmaster Node
 
