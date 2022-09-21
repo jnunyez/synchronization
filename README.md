@@ -527,6 +527,9 @@ Note here that `enp81s0f3` is configured as a Slave port, whereas `enp81s0f2` in
 The Silicom Time Sync stack is deployed in our OpenShift worker node acting as boundary clock role. As we did before we can use the gRPC to check the timing status information:
 
 ```console
+# oc get pods -n silicom | grep bc-1         
+bc-1-du3-ldc1-tsync-rxh2w      4/4     Running   0             1h
+
 # oc exec -it bc-1-du3-ldc1-tsync-rxh2w -n silicom -c du3-ldc1-grpc-tsyncd  -- tsynctl_grpc
 Tsynctl gRPC Client v1.1.3
 $ register 1 2 3 4 5
@@ -610,7 +613,7 @@ spec:
     sts.silicom.com/config: "oc-1"
   mode: T-TSC.8275.1                 
   twoStep: 0                          # <-- One-Step PTP timestamping mode
-  esmcMode: 2                         # <-- ESMC Mode
+  esmcMode: 2                         # <-- ESMC Mode set to Auto
   ssmMode: 1                          # <-- Mode is SSSM Code
   forwardable: 1
   syncRecClkPort: 3
@@ -632,7 +635,10 @@ spec:
 The Silicom Time Sync stack is deployed in our OpenShift worker node acting as an Ordinary Clock. As we did before we can use the gRPC to check the timing status information:
 
 ```console
-oc exec -it oc-1-du2-ldc1-tsync-bkqn9 -n silicom -c du2-ldc1-grpc-tsyncd  -- tsynctl_grpc
+# oc get pods -n silicom | grep oc-1
+oc-1-du2-ldc1-tsync-bkqn9                 4/4     Running   0         1h
+
+# oc exec -it oc-1-du2-ldc1-tsync-bkqn9 -n silicom -c du2-ldc1-grpc-tsyncd  -- tsynctl_grpc
 Tsynctl gRPC Client v1.1.3
 $ register 1 1 1 1 1
 ...REDACTED...
