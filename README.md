@@ -283,8 +283,7 @@ spec:
       synce: 1                       # <-- Enable SyncE
       mode: Master
       ethPort: 3
-      qlEnable: 1                    # <-- ESMC Quality Level (QL) Enabled
-      ql: 2                          # <-- ESMC Quality Level (QL) set to PRTC
+      qlEnable: 1                    # <-- ESMC Advertise Quality Level (QL) enabled
 EOF                 
 ```
 
@@ -510,14 +509,12 @@ spec:
       mode: Slave                      
       ethPort: 4 
       qlEnable: 1                      # <-- QL Enabled
-      ql: 4                            # <-- ESMC Quality Level (QL) set to DNU (Do Not Use)
     - ethName: enp81s0f2
       synce: 1
       holdoff: 500
       mode: Master                    
       ethPort: 3
       qlEnable: 1                     # <-- ESMC Quality Level Enabled
-      ql: 2                           # <-- ESMC Quality Level (QL) set to PRTC 
 EOF
 ```
 Note here that `enp81s0f3` is configured as a Slave port, whereas `enp81s0f2` interface is configured as master port to feed phase/time and frequency to other nodes in the synchronization hierarchy. These nodes can be either Boundary Clocks or Ordinary Clocks.
@@ -627,7 +624,7 @@ spec:
       mode: Slave                     # <-- Port Mode
       ethPort: 3
       qlEnable: 1                     # <-- ESMC Quality Level (QL) Enabled
-      ql: 4                           # <-- Quality Level value set to DNU (Do Not Use)
+      ql: 4                           # <-- Optional: set advertised Quality Level (QL), ql: 4 means Do Not Use (QL-DNU)
 ```
 
 ## Telecom Ordinary Clock Operation <a name="stsconfigOCop"></a>

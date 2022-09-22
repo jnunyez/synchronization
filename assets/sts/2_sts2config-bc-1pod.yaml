@@ -25,11 +25,9 @@ spec:
       mode: Slave
       ethPort: 4
       qlEnable: 1
-      ql: 2
     - ethName: enp81s0f2
       synce: 1
       holdoff: 500
       mode: Master
       ethPort: 3
       qlEnable: 1
-      ql: 4
