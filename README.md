@@ -703,6 +703,7 @@ This post provided a detailed walk through of the installation, operation and un
 
 Special thanks to the following individuals for their feedback in the authoring of this blog:
 - Dave Cain, Senior Principal Engineer, Red Hat.
+- Pasi Vaananen, Senior Principal Engineer, Red Hat.
 - Ryan Raasch, Senior Software Engineer, Silicom.
 - Eyal Cohen, Director of Business Development, Silicom.
 
