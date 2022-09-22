@@ -269,11 +269,11 @@ spec:
   nodeSelector:
     sts.silicom.com/config: "gm-1"
   mode: T-GM.8275.1
-  twoStep: 0                         # <-- One-Step PTP timestamping mode (requires PTP HW Timestamp) 
+  twoStep: 0                         # <-- One-Step PTP Clock (requires PTP HW Timestamp) 
   esmcMode: 2                        # <-- set ESMC mode to auto
-  ssmMode: 1                         # <-- set SSM Mode configured to SSM code
-  forwardable: 1
-  synceRecClkPort: 3
+  ssmMode: 1                         # <-- set SSM Mode configured to SSM cod
+  forwardable: 1                     # <-- Enable Multicast Address for PTP
+  synceRecClkPort: 3                 # <-- SyncE recovery clock port
   syncOption: 1                      # <-- Europe Synchronization network option
   gnssSpec:
     gnssSigGpsEn: 1
@@ -497,24 +497,24 @@ spec:
   twoStep: 0                           # <-- One-Step PTP timestamping mode (requires PTP HW Timestamp)
   esmcMode: 2                          # <-- set ESMC Mode to auto
   ssmMode: 1                           # <-- set SSM Mode to SSM Code
-  forwardable: 1
-  synceRecClkPort: 4
+  forwardable: 1                       # <-- Enable Multicast Address for PTP
+  synceRecClkPort: 4                   # <-- SyncE recovery clock port                      
   syncOption: 1                        # <-- Europe Synchronization Network Option
   gnssSpec:
     gnssSigGpsEn: 0                    # <-- GPS Disabled
   interfaces:
     - ethName: enp81s0f3
-      synce: 1                         # <-- Enable SyncE 
+      synce: 1                         # <-- Enable SyncE
       holdoff: 500                     # <-- SyncE Hold-off timer set to 500msec
-      mode: Slave                      
+      mode: Slave                      # <-- Slave Port in PTP 
       ethPort: 4 
-      qlEnable: 1                      # <-- QL Enabled
+      qlEnable: 1                      # <-- Advertise ESMC Quality Level enabled
     - ethName: enp81s0f2
       synce: 1
       holdoff: 500
-      mode: Master                    
+      mode: Master                    # <-- PTP Master port
       ethPort: 3
-      qlEnable: 1                     # <-- ESMC Quality Level Enabled
+      qlEnable: 1                     # <-- ESMC Quality Level enabled
 EOF
 ```
 Note here that `enp81s0f3` is configured as a Slave port, whereas `enp81s0f2` interface is configured as master port to feed phase/time and frequency to other nodes in the synchronization hierarchy. These nodes can be either Boundary Clocks or Ordinary Clocks.

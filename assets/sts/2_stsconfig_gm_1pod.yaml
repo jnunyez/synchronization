@@ -25,4 +25,3 @@ spec:
       mode: Master
       ethPort: 1
       qlEnable: 1
-      #ql: 2
