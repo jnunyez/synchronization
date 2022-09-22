@@ -67,7 +67,7 @@ Before we proceed to install the Silicom Time Sync Operator, ensure that you hav
 - Three worker nodes based on [SYS-210P][3] are used in this blog, but other server platforms that meet the PCIe Gen4 slot and height requirements should work. The worker nodes require:
   - Red Hat Enterprise Linux CoreOS in each of the three OpenShift worker nodes.
   - PCI-Express 4.0 x16 free slot in each of the three OpenShift worker nodes.
-  - Default `chrony` time services daemon disabled in each of the three OpenShift worker nodes. In OpenShift 4.10 you can use post-installation Machine Config tasks as described [here][15].
+  - Default `chrony` time services daemon disabled in each of the three OpenShift worker nodes. In OpenShift 4.10 you can use post-installation Machine Config tasks as described [here][14].
 
 - A container image with the following utilities installed: `lspci`, `ethtools`, and `lsusb`. This image will be used in the worker node equipped with STS card. The image can be pre-built and pushed into a container image registry such as [Red Hat Quay][13] or built locally as an ephemeral container.
 
