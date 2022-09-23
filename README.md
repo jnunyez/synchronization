@@ -706,6 +706,8 @@ Special thanks to the following individuals for their feedback in the authoring 
 - Pasi Vaananen, Senior Principal Engineer, Red Hat.
 - Ryan Raasch, Senior Software Engineer, Silicom.
 - Eyal Cohen, Director of Business Development, Silicom.
+- Motti Goren, EVP Time Synchronization Division, Silicom.
+- Eli Urshanski, Principal System Architect, Silicom.
 
 
 [1]: https://www.silicom-usa.com/pr/server-adapters/networking-adapters/25-gigabit-ethernet-networking-server-adapters/p425g410g8ts81-timesync-card-sts4/
