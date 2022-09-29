@@ -14,7 +14,7 @@ Synchronization and precise timing via Global Positioning Systems (GPS) is of pa
 6. [Telecom Grandmaster Operation](#stsops)
 7. [Telecom Boundary Clock Provisioning](#stsconfigBCprov)
 7. [Telecom Boundary Clock Operation](#stsconfigBCop)
-8. [Telecom Time Slave Clock Provisioning](#stsconfigOCproc)
+8. [Telecom Time Slave Clock Provisioning](#stsconfigOCprov)
 9. [Telecom Time Slave Clock Operation](#stsconfigOCop)
 10. [Uninstalling Silicom Time Sync Operator](#uninstalling)
 11. [Wrapup](#conclusion)
