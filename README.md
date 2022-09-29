@@ -14,8 +14,8 @@ Synchronization and precise timing via Global Positioning Systems (GPS) is of pa
 6. [Telecom Grandmaster Operation](#stsops)
 7. [Telecom Boundary Clock Provisioning](#stsconfigBCprov)
 7. [Telecom Boundary Clock Operation](#stsconfigBCop)
-8. [Telecom Ordinary Clock Provisioning](#stsconfigOCproc)
-9. [Telecom Ordinary Clock Operation](#stsconfigOCop)
+8. [Telecom Time Slave Clock Provisioning](#stsconfigOCproc)
+9. [Telecom Time Slave Clock Operation](#stsconfigOCop)
 10. [Uninstalling Silicom Time Sync Operator](#uninstalling)
 11. [Wrapup](#conclusion)
 
@@ -517,7 +517,7 @@ spec:
       qlEnable: 1                     # <-- ESMC Quality Level enabled
 EOF
 ```
-Note here that `enp81s0f3` is configured as a Slave port, whereas `enp81s0f2` interface is configured as master port to feed phase/time and frequency to other nodes in the synchronization hierarchy. These nodes can be either Boundary Clocks or Ordinary Clocks.
+Note here that `enp81s0f3` is configured as a Slave port, whereas `enp81s0f2` interface is configured as master port to feed phase/time and frequency to other nodes in the synchronization hierarchy. These nodes can be either Boundary Clocks or Slave Clocks.
 
 ## Telecom Boundary Clock Operation <a name="stsconfigBCop"></a>
 
@@ -580,34 +580,34 @@ GNSS Longitude:          0
 GNSS Height:             0
 ```
 
-## Telecom Ordinary Clock Provisioning <a name="stsconfigOCprov"></a>
+## Telecom Time Slave Clock Provisioning <a name="stsconfigOCprov"></a>
 
-Now we proceed to configure the baremetal worker node `du4-ldc1` as Telecom Ordinary Clock (T-OC).
+Now we proceed to configure the baremetal worker node `du4-ldc1` as Telecom Time Slave Clock (T-TSC).
 
-### Label Ordinary Clock Node
+### Label Slave Clock
 
-Add a node label `sts.silicom.com/config=oc-1` in the worker node with a Silicom Time Sync card. In our case our baremetal worker node name is `du2-ldc1`:
+Add a node label `sts.silicom.com/config=sc-1` in the worker node with a Silicom Time Sync card. In our case our baremetal worker node name is `du2-ldc1`:
 
 ```console
-# oc label node du2-ldc1 sts.silicom.com/config="oc-1"
+# oc label node du2-ldc1 sts.silicom.com/config="sc-1"
 ```
 
-### Instantiate Ordinary Clock Node
+### Instantiate Slave Clock 
 
-Create a StsConfig CR object to provision the desired Telecom PTP profile [T-GM.8275.1][12] focused on ending the synchronization chain for both PTP and SyncE protocols. Note again the use `nodeSelector` to constrain the worker nodes to those nodes labelled with `sts.silicom.com/config=oc-1`.
+Create a StsConfig CR object to provision the desired Telecom PTP profile [T-TSC.8275.1][12] focused on ending the synchronization chain for both PTP and SyncE protocols. Note again the use `nodeSelector` to constrain the worker nodes to those nodes labelled with `sts.silicom.com/config=sc-1`.
 
 ```yaml
 # cat <<EOF | oc apply -f -
 apiVersion: sts.silicom.com/v1alpha1
 kind: StsConfig
 metadata:
-  name: oc-1
+  name: sc-1
   namespace: silicom
 spec:
   namespace: silicom
   imageRegistry: quay.io/silicom
   nodeSelector:
-    sts.silicom.com/config: "oc-1"
+    sts.silicom.com/config: "sc-1"
   mode: T-TSC.8275.1                 
   twoStep: 0                          # <-- One-Step PTP timestamping mode
   esmcMode: 2                         # <-- ESMC Mode set to Auto
@@ -627,15 +627,15 @@ spec:
       ql: 4                           # <-- Optional: set advertised Quality Level (QL), ql: 4 means Do Not Use (QL-DNU)
 ```
 
-## Telecom Ordinary Clock Operation <a name="stsconfigOCop"></a>
+## Telecom Time Slave Clock Operation <a name="stsconfigOCop"></a>
 
-The Silicom Time Sync stack is deployed in our OpenShift worker node acting as an Ordinary Clock. As we did before we can use the gRPC to check the timing status information:
+The Silicom Time Sync stack is deployed in our OpenShift worker node acting as an Slave Clock. As we did before we can use the gRPC to check the timing status information:
 
 ```console
-# oc get pods -n silicom | grep oc-1
-oc-1-du2-ldc1-tsync-bkqn9                 4/4     Running   0         1h
+# oc get pods -n silicom | grep sc-1
+sc-1-du2-ldc1-tsync-bkqn9                 4/4     Running   0         1h
 
-# oc exec -it oc-1-du2-ldc1-tsync-bkqn9 -n silicom -c du2-ldc1-grpc-tsyncd  -- tsynctl_grpc
+# oc exec -it sc-1-du2-ldc1-tsync-bkqn9 -n silicom -c du2-ldc1-grpc-tsyncd  -- tsynctl_grpc
 Tsynctl gRPC Client v1.1.3
 $ register 1 1 1 1 1
 ...REDACTED...
@@ -681,7 +681,7 @@ Note that if you directly delete the operator the time synchronization pod will 
 * First delete the `StsConfig` and `StsOperatorConfig` CRs we created before:
 
 ```console
-# oc delete stsconfig gm-1 bc-1 oc-1 -n silicom
+# oc delete stsconfig gm-1 bc-1 sc-1 -n silicom
 # oc delete stsoperatorconfig sts-operator-config -n silicom
 ```
 
