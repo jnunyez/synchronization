@@ -2,7 +2,7 @@
 
 Are you working with baremetal clusters and looking for a timing and synchronization solution for your containerized workloads? The Silicom Time Sync (STS) Operator was just released as a [Certified Operator on OpenShift][4].
 
-Synchronization and precise timing via Global Positioning Systems (GPS) is of paramount importance for 5G [Open Radio Access Networks (O-RAN)][5]. This blog shows how easy it is to install the STS Operator on Red Hat OpenShift Container Platform, and use it to configure specialized E810 NIC adapters from Silicom in OpenShift Container Platform. We'll also show how to configure the time synchronization functionality on a Telecom Grandmaster (T-GM) node in our cluster.
+Synchronization and precise timing via Global Positioning Systems (GPS) is of paramount importance for 5G [Open Radio Access Networks (O-RAN)][5]. This blog shows how easy it is to install the STS Operator on Red Hat OpenShift Container Platform, and use it to configure specialized E810 NIC adapters from Silicom in OpenShift Container Platform. We'll also show how to configure the time synchronization functionality on Telecom Grandmaster (T-GM), Telecom Boundary Clock (T-BC), and Telecom Slave Clock (T-SC) nodes in our OpenShift cluster.
 
 ## Table of Contents
 
